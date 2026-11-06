@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Binder Pikachu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --y:#F7D02C; --y2:#FFE45C; --red:#E3350D; --ink:#0d0d10;
+  --cover:#141417; --page:#1b1b20; --pocket:#232329;
+  --txt:#f4f1e8; --mut:#a19d92; --line:#30303a; --ok:#52c97a;
+  --d1:#52c97a; --d2:#a6cf3f; --d3:#F7D02C; --d4:#f08a24; --d5:#e3350d;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{
+  font-family:'Nunito Sans',system-ui,-apple-system,Segoe UI,sans-serif;color:var(--txt);
+  background:radial-gradient(1100px 700px at 50% 35%,#3b3428 0%,#211d17 55%,#0e0d0b 100%);
+  overflow:hidden;display:flex;flex-direction:column;-webkit-font-smoothing:antialiased;
+}
+button{font:inherit;color:inherit;cursor:pointer;background:none;border:0}
+h1,h2,h3{font-family:'Fredoka','Nunito Sans',sans-serif;font-weight:600;margin:0}
+a{color:var(--y)}
+
+/* ---------- top bar ---------- */
+.top{display:flex;align-items:center;gap:14px;padding:10px 16px;border-bottom:1px solid #ffffff12;background:#0e0d0bcc;backdrop-filter:blur(8px);z-index:20;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;margin-right:auto;min-width:0}
+.brand .logo{width:34px;height:34px;border-radius:10px;background:var(--y);display:grid;place-items:center;flex:none;box-shadow:0 2px 0 #b8940f inset,0 0 0 2px #00000040}
+.brand h1{font-size:20px;letter-spacing:.2px;white-space:nowrap}
+.brand .sub{font-size:12px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prog{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--mut)}
+.prog .bar{width:120px;height:8px;border-radius:9px;background:#ffffff14;overflow:hidden}
+.prog .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--y),var(--y2));border-radius:9px;transition:width .4s}
+.prog b{color:var(--txt);font-weight:800}
+.tools{display:flex;gap:6px;flex-wrap:wrap}
+.tb{display:flex;align-items:center;gap:6px;padding:8px 11px;border-radius:10px;background:#ffffff0d;border:1px solid #ffffff14;font-size:13px;font-weight:600;transition:background .15s,border-color .15s}
+.tb:hover{background:#ffffff1a}
+.tb svg{width:16px;height:16px;flex:none}
+.tb.on{background:var(--y);color:#1a1606;border-color:var(--y)}
+.tb .lbl{white-space:nowrap}
+@media (max-width:980px){.tb .lbl{display:none}.prog .bar{width:70px}}
+@media (max-width:560px){.brand .sub{display:none}.prog{display:none}}
+
+/* ---------- stage & binder ---------- */
+.stage{flex:1;position:relative;display:grid;place-items:center;min-height:0;touch-action:pan-y}
+.binder{
+  position:relative;padding:var(--cv);border-radius:calc(var(--cv)*.9);
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    linear-gradient(160deg,#232328,#121215 60%,#0b0b0d);
+  box-shadow:0 30px 60px -10px #000c,0 0 0 1px #000,inset 0 1px 0 #ffffff12;
+}
+/* stitching */
+.binder::before{content:"";position:absolute;inset:calc(var(--cv)*.32);border-radius:calc(var(--cv)*.6);border:2px dashed #F7D02Caa;pointer-events:none;opacity:.75}
+/* zipper on outer edge */
+.binder::after{content:"";position:absolute;inset:3px;border-radius:calc(var(--cv)*.85);pointer-events:none;
+  border:3px solid transparent;
+  background:repeating-linear-gradient(90deg,#55555d 0 3px,#1b1b1f 3px 6px) border-box;
+  -webkit-mask:linear-gradient(#000 0 0) padding-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:.8}
+.book{position:relative;width:calc(var(--pw)*var(--np));height:var(--ph);perspective:2600px}
+.page{
+  position:absolute;top:0;width:var(--pw);height:var(--ph);
+  background:
+    linear-gradient(90deg,#0000 0,#0000 100%),
+    linear-gradient(180deg,#1f1f25,#18181d);
+  padding:var(--pad);padding-top:var(--head);display:flex;flex-direction:column;overflow:hidden;
+}
+.page.left{left:0;border-radius:6px 2px 2px 6px;box-shadow:inset -18px 0 22px -14px #000}
+.page.right{left:var(--pw);border-radius:2px 6px 6px 2px;box-shadow:inset 18px 0 22px -14px #000}
+.page.single{left:0;border-radius:6px;box-shadow:inset 12px 0 16px -12px #000}
+.page .phead{position:absolute;left:var(--pad);right:var(--pad);top:0;height:var(--head);display:flex;align-items:center;gap:8px;font-size:clamp(9px,calc(var(--w)*.085),13px);color:var(--mut);white-space:nowrap;overflow:hidden}
+.page .phead span{overflow:hidden;text-overflow:ellipsis}
+.page .phead .yr{color:var(--y);font-weight:800;flex:none}
+.page .pnum{position:absolute;bottom:calc(var(--pad)*.25);font-size:11px;color:#6c6a64}
+.page.left .pnum{left:var(--pad)} .page.right .pnum,.page.single .pnum{right:var(--pad)}
+.grid{display:grid;grid-template-columns:repeat(var(--c),var(--w));grid-auto-rows:var(--h);gap:var(--gap);margin:0 auto}
+
+.pocket{position:relative;width:var(--w);height:var(--h);border-radius:calc(var(--w)*.05);padding:0;overflow:hidden;
+  background:linear-gradient(180deg,#26262d,#1f1f25);box-shadow:inset 0 0 0 1px #ffffff10,inset 0 2px 6px #0008;transition:transform .15s}
+.pocket:not(.empty):hover{transform:translateY(-2px)}
+.pocket img{position:absolute;inset:3%;width:94%;height:94%;object-fit:cover;border-radius:calc(var(--w)*.045);user-select:none;-webkit-user-drag:none}
+.pocket.missing img{filter:grayscale(1) brightness(.7);opacity:.22}
+.pocket.missing.noghost img{opacity:0}
+/* plastic sleeve sheen */
+.pocket::after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;
+  background:linear-gradient(115deg,#ffffff00 30%,#ffffff1c 42%,#ffffff05 50%,#ffffff00 60%),linear-gradient(180deg,#ffffff0d,#0000 12%);
+  box-shadow:inset 0 0 0 1px #ffffff14}
+/* side-loading slit (Vaultx) */
+.pocket::before{content:"";position:absolute;top:8%;bottom:8%;right:2px;width:2px;border-radius:2px;background:#ffffff14;z-index:2;pointer-events:none}
+.pocket.empty{background:linear-gradient(180deg,#202026,#1c1c21);opacity:.6;cursor:default}
+.pocket .slot{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:8%;text-align:center;color:#8a877e;font-size:clamp(8px,calc(var(--w)*.09),12px);line-height:1.2;z-index:1}
+.pocket.owned .slot{display:none}
+.pocket .slot b{color:#b9b5aa;font-family:'Fredoka',sans-serif;font-weight:500;font-size:1.15em}
+.pocket .noimg{position:absolute;inset:3%;border-radius:calc(var(--w)*.045);background:repeating-linear-gradient(45deg,#2a2a31 0 8px,#26262c 8px 16px);display:flex;align-items:center;justify-content:center;text-align:center;padding:10%;font-size:clamp(8px,calc(var(--w)*.09),12px);color:#c8c3b6}
+.pocket.owned .noimg{background:linear-gradient(160deg,#4a3f12,#2a2514);color:var(--y2)}
+.badges{position:absolute;left:5%;right:5%;top:5%;display:flex;gap:3px;z-index:3;pointer-events:none;flex-wrap:wrap}
+.bdg{font-size:clamp(8px,calc(var(--w)*.08),11px);font-weight:800;padding:1px 5px;border-radius:6px;line-height:1.5;box-shadow:0 1px 3px #0009}
+.b-qty{background:var(--red);color:#fff;margin-left:auto;order:9}
+.b-en{background:#2453c9;color:#fff}
+.b-new{background:var(--y);color:#1a1606}
+.dot{position:absolute;right:6%;bottom:5%;width:clamp(7px,calc(var(--w)*.08),11px);height:clamp(7px,calc(var(--w)*.08),11px);border-radius:50%;z-index:3;box-shadow:0 0 0 2px #0008;pointer-events:none}
+.quick .pocket:not(.empty){cursor:copy}
+.quick .pocket:not(.empty):hover{box-shadow:inset 0 0 0 2px var(--y)}
+
+/* flip leaf */
+.leaf{position:absolute;top:0;width:var(--pw);height:var(--ph);transform-style:preserve-3d;transition:transform .62s cubic-bezier(.45,.05,.25,1);z-index:5}
+.leaf.next{left:var(--pw);transform-origin:left center}
+.leaf.prev{left:0;transform-origin:right center}
+.leaf.next.go{transform:rotateY(-180deg)}
+.leaf.prev.go{transform:rotateY(180deg)}
+.leaf .face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.leaf .face .page{left:0!important}
+.leaf .back{transform:rotateY(180deg)}
+.leaf .face::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,#0000,#0006);opacity:0;transition:opacity .62s}
+.leaf.go .face::after{opacity:.0}
+.slideout{transition:transform .32s ease,opacity .32s ease}
+
+/* inside cover */
+.cover-in{align-items:center;justify-content:center;text-align:center;gap:clamp(8px,2.2vh,18px);padding-top:var(--pad)!important;
+  background:radial-gradient(circle at 50% 30%,#2b2614,#17161a 70%)!important}
+.cover-in h2{font-size:clamp(18px,calc(var(--pw)*.075),34px);color:var(--y)}
+.cover-in .ring{width:clamp(90px,calc(var(--pw)*.42),200px);aspect-ratio:1}
+.cover-in .stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:min(100%,360px);font-size:clamp(11px,calc(var(--pw)*.034),14px)}
+.cover-in .stats div{background:#ffffff0a;border:1px solid #ffffff12;border-radius:10px;padding:8px}
+.cover-in .stats b{display:block;font-family:'Fredoka',sans-serif;font-size:1.45em;color:var(--txt)}
+.cover-in .stats span{color:var(--mut)}
+.cover-in .hint{font-size:clamp(10px,calc(var(--pw)*.03),13px);color:var(--mut);max-width:340px;line-height:1.5}
+.endpage{align-items:center;justify-content:center;text-align:center;color:var(--mut);font-size:14px;padding-top:var(--pad)!important}
+
+/* nav */
+.nav{display:flex;align-items:center;justify-content:center;gap:12px;padding:8px 12px 12px;z-index:10}
+.nav .arrow{width:42px;height:42px;border-radius:50%;background:#ffffff10;border:1px solid #ffffff1c;display:grid;place-items:center}
+.nav .arrow:hover{background:var(--y);color:#1a1606}
+.nav .arrow:disabled{opacity:.3;cursor:default;background:#ffffff10;color:inherit}
+.nav input[type=range]{width:min(46vw,420px);accent-color:var(--y)}
+.nav .pg{font-size:13px;color:var(--mut);min-width:120px;text-align:center}
+.status{position:absolute;left:14px;bottom:10px;font-size:12px;color:var(--mut);display:flex;align-items:center;gap:8px;pointer-events:none}
+.spin{width:12px;height:12px;border:2px solid #ffffff30;border-top-color:var(--y);border-radius:50%;animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* ---------- overlay / modal / drawer ---------- */
+.ov{position:fixed;inset:0;background:#000a;backdrop-filter:blur(3px);z-index:50;display:none}
+.ov.show{display:block}
+.modal{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;padding:16px;pointer-events:none}
+.modal.show{display:flex}
+.mbox{pointer-events:auto;background:#17161a;border:1px solid #ffffff1a;border-radius:18px;width:min(1040px,100%);max-height:100%;overflow:auto;box-shadow:0 30px 80px #000;position:relative}
+.mclose{position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;background:#ffffff12;display:grid;place-items:center;z-index:2}
+.mclose:hover{background:#ffffff26}
+.det{display:grid;grid-template-columns:minmax(220px,360px) 1fr;gap:26px;padding:24px}
+.det>*{min-width:0}.diff>div{min-width:0}.vwrap{overflow-x:auto}
+@media (max-width:760px){.det{grid-template-columns:1fr;padding:16px}.det .art{width:100%;max-width:300px;margin:0 auto}}
+.pocket.missing:not(.noghost) img{opacity:.3}
+.pocket.missing:not(.noghost) .slot{justify-content:flex-end;padding-bottom:10%}
+.pocket.missing:not(.noghost) .slot span{display:none}
+.pocket.missing:not(.noghost) .slot b{background:#000a;padding:1px 6px;border-radius:6px;font-size:1em}
+.art{perspective:900px}
+.art .cardimg{position:relative;width:100%;aspect-ratio:63/88;border-radius:4.5%/3.3%;overflow:hidden;transform-style:preserve-3d;transition:transform .12s;box-shadow:0 18px 40px #000b;background:#222}
+.art .cardimg img{width:100%;height:100%;object-fit:cover;display:block}
+.art .cardimg .holo{position:absolute;inset:0;mix-blend-mode:color-dodge;opacity:0;transition:opacity .2s;background:radial-gradient(circle at var(--mx,50%) var(--my,50%),#ffffffaa,#0000 45%),linear-gradient(115deg,#ff008044,#ffd70044,#00ffd544,#7a00ff44);background-blend-mode:overlay}
+.art:hover .holo{opacity:.55}
+.art .owned-tag{margin-top:12px;text-align:center;font-size:13px;color:var(--mut)}
+.det h2{font-size:30px;line-height:1.1;padding-right:40px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 16px}
+.chip{font-size:12px;font-weight:700;padding:4px 9px;border-radius:999px;background:#ffffff12;border:1px solid #ffffff18}
+.chip.fr{background:#1f3a8a55;border-color:#3b5bd9}
+.chip.en{background:#8a1f1f55;border-color:#d93b3b}
+.info{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-bottom:18px}
+.info div{background:#ffffff08;border:1px solid #ffffff10;border-radius:12px;padding:10px 12px;min-width:0}
+.info span{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--mut);margin-bottom:3px}
+.info b{font-weight:700;font-size:14px;display:flex;align-items:center;gap:8px}
+.info img.setlogo{height:22px;max-width:90px;object-fit:contain}
+.sec{margin:18px 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.8px;color:var(--mut);font-family:'Nunito Sans',sans-serif;font-weight:800;display:flex;align-items:center;gap:8px}
+.diff{display:flex;gap:16px;align-items:flex-start;background:#ffffff08;border:1px solid #ffffff10;border-radius:14px;padding:12px 14px}
+.meter{display:flex;gap:4px;flex:none;margin-top:4px}
+.meter i{width:18px;height:10px;border-radius:3px;background:#ffffff18}
+.diff h3{font-size:18px;margin-bottom:4px}
+.diff ul{margin:4px 0 0;padding-left:18px;font-size:13px;color:#cfcabd;line-height:1.5}
+table.vt{width:100%;border-collapse:collapse;font-size:13px}
+.vt th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--mut);font-weight:700;padding:6px 8px;border-bottom:1px solid var(--line)}
+.vt td{padding:8px;border-bottom:1px solid #ffffff0c;vertical-align:middle}
+.vt td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+.vt tr.has td:first-child{color:var(--y)}
+.vt .vname{font-weight:700;cursor:help;display:inline-flex;align-items:center;gap:6px;border-bottom:1px dashed #ffffff40}
+.vt .vname svg{width:14px;height:14px;opacity:.6;flex:none}
+.vt .vname:hover,.vt .vname.on{color:var(--y);border-color:var(--y)}
+/* aperçu des variantes */
+.vprev{position:fixed;z-index:80;width:200px;pointer-events:none;opacity:0;transform:scale(.96);transition:opacity .12s,transform .12s;background:#17161a;border:1px solid #ffffff26;border-radius:14px;padding:10px;box-shadow:0 20px 50px #000c}
+.vprev.show{opacity:1;transform:none}
+.vcard{position:relative;aspect-ratio:63/88;border-radius:4.5%/3.3%;overflow:hidden;background:#26262c}
+.vcard>img{width:100%;height:100%;object-fit:cover;display:block}
+.vcard .vnone{position:absolute;inset:0;display:grid;place-items:center;color:var(--mut);font-size:12px;text-align:center;padding:10px}
+.vfx{position:absolute;inset:0;pointer-events:none;mix-blend-mode:color-dodge;opacity:.75;
+  background:linear-gradient(115deg,#ff4d8d 0%,#ffd84d 18%,#5dffb0 34%,#4dc3ff 50%,#b04dff 66%,#ff4d8d 84%,#ffd84d 100%);background-size:300% 300%;animation:shine 3s linear infinite}
+@keyframes shine{from{background-position:0% 50%}to{background-position:300% 50%}}
+.fx-holo{clip-path:inset(10.5% 8% 47.5% 8% round 2px)}
+.fx-reverse{-webkit-mask:linear-gradient(#000 0 0) 0 0/100% 100% no-repeat,linear-gradient(#000 0 0) 50% 21%/84% 42% no-repeat;-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) 0 0/100% 100% no-repeat exclude,linear-gradient(#000 0 0) 50% 21%/84% 42% no-repeat}
+.vfx{mix-blend-mode:hard-light;opacity:.5}
+.vfx::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,#0000 35%,#ffffffcc 48%,#0000 60%);background-size:250% 100%;animation:band 2.6s ease-in-out infinite;mix-blend-mode:soft-light}
+@keyframes band{from{background-position:120% 0}to{background-position:-120% 0}}
+.fx-rainbow{opacity:.4;mix-blend-mode:color}
+.fx-cosmos{background:radial-gradient(circle,#fff 0 1px,#0000 1.8px) 0 0/9px 9px,radial-gradient(circle,#fff6 0 1.5px,#0000 2.5px) 4px 5px/13px 13px,linear-gradient(115deg,#ff4d8d,#ffd84d,#5dffb0,#4dc3ff,#b04dff,#ff4d8d);background-size:9px 9px,13px 13px,300% 300%;animation:shine 4s linear infinite;opacity:.7}
+.vstamp{position:absolute;z-index:2;font:800 9px/1.1 'Nunito Sans',sans-serif;color:#2a1d00;background:radial-gradient(circle at 30% 30%,#fff3b0,#e0b23a);border:1.5px solid #8a6510;border-radius:999px;padding:3px 6px;max-width:62%;text-align:center;box-shadow:0 1px 3px #0008;right:11%;top:41%;text-transform:uppercase;letter-spacing:.3px}
+.vstamp.first{right:auto;left:7%;top:52.5%;width:16px;height:16px;padding:0;border-radius:50%;background:#111;color:#fff;border:1.5px solid #fff;display:grid;place-items:center;font-size:9px}
+.vjumbo{position:absolute;z-index:2;top:6px;left:-26px;transform:rotate(-35deg);background:var(--red);color:#fff;font:800 9px/1 'Nunito Sans',sans-serif;padding:3px 30px;letter-spacing:1px}
+.vcap{margin-top:8px;font-size:12px;line-height:1.35}
+.vcap b{display:block;font-size:13px;color:var(--y)}
+.vcap .muted{font-size:10.5px;display:block;margin-top:4px}
+.vt .vsub{font-size:11px;color:var(--mut)}
+.step{display:inline-flex;align-items:center;border:1px solid #ffffff22;border-radius:10px;overflow:hidden}
+.step button{width:32px;height:30px;font-size:17px;font-weight:700;background:#ffffff0a}
+.step button:hover{background:var(--y);color:#1a1606}
+.step output{min-width:30px;text-align:center;font-weight:800;font-variant-numeric:tabular-nums}
+.muted{color:var(--mut);font-size:12px}
+.addvar{margin-top:10px;font-size:13px}
+.addvar summary{cursor:pointer;color:var(--y);font-weight:700;padding:4px 0}
+.addrow{display:flex;gap:8px;margin:8px 0 6px;flex-wrap:wrap}
+.addrow select{background:#ffffff0a;color:var(--txt);border:1px solid #ffffff22;border-radius:12px;padding:0 10px;font:inherit}
+.addrow select option{background:#17161a}
+.addrow .srch{flex:1;min-width:180px;padding:8px 12px;font-size:14px}
+.links{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 14px;border-radius:10px;background:#ffffff10;border:1px solid #ffffff1c;font-weight:700;font-size:13px;text-decoration:none;color:var(--txt)}
+.btn:hover{background:#ffffff20}
+.btn.pri{background:var(--y);color:#1a1606;border-color:var(--y)}
+.btn.pri:hover{background:var(--y2)}
+.btn.danger{border-color:#e3350d88;color:#ff8a70}
+.thumbs{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px}
+.thumb{flex:none;width:84px;text-align:center;font-size:11px;color:var(--mut)}
+.thumb .ti{width:84px;aspect-ratio:63/88;border-radius:5px;overflow:hidden;background:#26262c;margin-bottom:4px;position:relative}
+.thumb .ti img{width:100%;height:100%;object-fit:cover}
+.thumb.miss .ti img{filter:grayscale(1);opacity:.4}
+.thumb:hover .ti{outline:2px solid var(--y)}
+.skel{padding:60px;text-align:center;color:var(--mut)}
+
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(440px,100%);background:#141317;border-left:1px solid #ffffff1a;z-index:60;transform:translateX(105%);transition:transform .28s ease;display:flex;flex-direction:column;box-shadow:-20px 0 50px #000a}
+.drawer.show{transform:none}
+.dhead{display:flex;align-items:center;gap:10px;padding:16px 16px 12px;border-bottom:1px solid #ffffff12}
+.dhead h2{font-size:20px;margin-right:auto}
+.dbody{flex:1;overflow:auto;padding:12px 16px 24px}
+.srch{width:100%;padding:11px 14px;border-radius:12px;border:1px solid #ffffff22;background:#ffffff0a;color:var(--txt);font:inherit;font-size:15px;outline:none}
+.srch:focus{border-color:var(--y)}
+.row{display:flex;align-items:center;gap:10px;padding:8px;border-radius:12px;cursor:pointer;width:100%;text-align:left}
+.row:hover{background:#ffffff0c}
+.row .ri{width:44px;aspect-ratio:63/88;border-radius:4px;overflow:hidden;background:#26262c;flex:none}
+.row .ri img{width:100%;height:100%;object-fit:cover}
+.row.miss .ri img{filter:grayscale(1);opacity:.45}
+.row .rt{flex:1;min-width:0}
+.row .rt b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .rt small{color:var(--mut);font-size:12px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .rr{text-align:right;font-size:12px;color:var(--mut);flex:none}
+.row .rr b{color:var(--txt);font-size:13px;display:block}
+.yearh{font-family:'Fredoka',sans-serif;color:var(--y);font-size:15px;margin:14px 0 4px 8px}
+.setrow .ri{width:56px;aspect-ratio:auto;height:30px;background:none;display:grid;place-items:center}
+.setrow .ri img{object-fit:contain}
+.mini{height:5px;border-radius:5px;background:#ffffff14;overflow:hidden;margin-top:5px;width:100%}
+.mini i{display:block;height:100%;background:var(--y)}
+.seg{display:flex;background:#ffffff0c;border-radius:10px;padding:3px;gap:3px;margin:10px 0}
+.seg button{flex:1;padding:7px 8px;border-radius:8px;font-size:13px;font-weight:700;color:var(--mut)}
+.seg button.on{background:var(--y);color:#1a1606}
+.field{margin:18px 0}
+.field label.t{display:block;font-weight:800;margin-bottom:4px}
+.field p{margin:2px 0 8px;color:var(--mut);font-size:13px;line-height:1.45}
+.switch{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid #ffffff0c;cursor:pointer}
+.switch input{width:20px;height:20px;accent-color:var(--y)}
+textarea.code{width:100%;height:120px;background:#0c0c0e;color:#d8d3c5;border:1px solid #ffffff1c;border-radius:10px;padding:10px;font:12px ui-monospace,monospace}
+.toast{position:fixed;left:50%;bottom:76px;transform:translateX(-50%) translateY(20px);background:#26252b;border:1px solid #ffffff22;padding:10px 16px;border-radius:12px;z-index:90;opacity:0;transition:.25s;font-size:14px;display:flex;gap:12px;align-items:center;box-shadow:0 10px 30px #000a;max-width:92vw}
+.toast.show{opacity:1;transform:translateX(-50%)}
+.toast button{color:var(--y);font-weight:800}
+.loading{position:absolute;inset:0;display:grid;place-items:center;text-align:center;color:var(--mut);z-index:4}
+.loading h2{color:var(--y);font-size:26px;margin:14px 0 6px}
+.err{max-width:460px;line-height:1.5}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">
+    <div class="logo"><svg width="22" height="22" viewBox="0 0 24 24" fill="#1a1606"><path d="M13.5 1 5 13.2h5.6L9 23l9.4-13H12.6z"/></svg></div>
+    <div style="min-width:0"><h1>Binder Pikachu</h1><div class="sub" id="sub">Collection FR · EN quand pas de sortie FR</div></div>
+  </div>
+  <div class="prog" id="prog"><div class="bar"><i id="progbar" style="width:0"></i></div><span id="progtxt">—</span></div>
+  <nav class="tools">
+    <button class="tb" data-act="index" title="Sommaire des extensions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg><span class="lbl">Sommaire</span></button>
+    <button class="tb" data-act="search" title="Rechercher une carte"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg><span class="lbl">Rechercher</span></button>
+    <button class="tb" data-act="wish" title="Cartes manquantes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-4.4-9.3-9A5.3 5.3 0 0 1 12 6a5.3 5.3 0 0 1 9.3 6c-2.3 4.6-9.3 9-9.3 9z"/></svg><span class="lbl">Manquantes</span></button>
+    <button class="tb" data-act="quick" id="quickBtn" title="Mode ajout rapide : un clic sur une carte = +1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg><span class="lbl">Ajout rapide</span></button>
+    <button class="tb" data-act="share" title="Partager en lecture seule"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg><span class="lbl">Partager</span></button>
+    <button class="tb" data-act="backup" title="Sauvegarde"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v3h16v-3"/></svg><span class="lbl">Sauvegarde</span></button>
+    <button class="tb" data-act="settings" title="Réglages"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span class="lbl">Réglages</span></button>
+    <button class="tb" data-act="refresh" title="Chercher les nouvelles cartes et mettre à jour les prix"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 3v5h-5"/></svg><span class="lbl">Actualiser</span></button>
+  </nav>
+</header>
+
+<main class="stage" id="stage">
+  <div class="loading" id="loading">
+    <div><div class="spin" style="width:34px;height:34px;border-width:4px;margin:auto"></div>
+    <h2>Ouverture du binder…</h2><div id="loadmsg">Récupération des cartes Pikachu</div></div>
+  </div>
+  <div class="binder" id="binder" style="display:none"><div class="book" id="book"></div></div>
+  <div class="status" id="status"></div>
+</main>
+<div class="nav" id="nav" style="display:none">
+  <button class="arrow" id="prev" aria-label="Page précédente"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m15 18-6-6 6-6"/></svg></button>
+  <input type="range" id="scrub" min="0" max="0" value="0" aria-label="Feuilleter">
+  <div class="pg" id="pg"></div>
+  <button class="arrow" id="next" aria-label="Page suivante"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m9 18 6-6-6-6"/></svg></button>
+</div>
+
+<div class="ov" id="ov"></div>
+<div class="modal" id="modal"><div class="mbox" id="mbox"></div></div>
+<aside class="drawer" id="drawer"><div class="dhead"><h2 id="dtitle"></h2><button class="mclose" style="position:static" data-close><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div><div class="dbody" id="dbody"></div></aside>
+<div class="toast" id="toast"></div>
+<input type="file" id="fileIn" accept="application/json,.json" hidden>
+<input type="file" id="photoIn" accept="image/*" hidden>
+
+<script>
+'use strict';
+/* Copie intacte de la page, pour générer la version à partager (lecture seule) */
+const SOURCE = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+/* Collection reçue par un lien de partage (#v1=…) */
+function decodeShareHash() {
+  if (!location.hash.startsWith('#v1=')) return null;
+  try {
+    const p = new URLSearchParams(location.hash.slice(1)), coll = {};
+    for (const grp of (p.get('v1') || '').split(';')) {
+      const i = grp.indexOf(':'); if (i < 1) continue;
+      const set = grp.slice(0, i);
+      for (const it of grp.slice(i + 1).split(',')) {
+        const m = it.match(/^([^.*~]+)(?:\.(\d+)|~([a-z0-9-]+))?(?:\*(\d+))?$/i); if (!m) continue;
+        const id = set + '-' + m[1], k = m[3] || '#' + (m[2] || 0);
+        (coll[id] = coll[id] || {})[k] = (coll[id][k] || 0) + (+m[4] || 1);
+      }
+    }
+    let custom = {}; try { custom = JSON.parse(p.get('x') || '{}'); } catch (e) {}
+    const d = p.get('d');
+    return {owner: p.get('o') || 'un ami', date: d ? `${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}T12:00:00` : null,
+      collection: coll, custom, photos: {}, settings: p.get('p') ? {pockets: +p.get('p')} : {}};
+  } catch (e) { return null; }
+}
+const SHARED = (typeof window.PK_SHARED === 'object' && window.PK_SHARED) || decodeShareHash();
+addEventListener('hashchange', () => location.reload());
+const RO = !!SHARED;            // true = version partagée, en lecture seule
+const OWNER = RO ? (SHARED.owner || 'un ami') : '';
+/* =========================================================
+   Binder Pikachu — données : TCGdex (api.tcgdex.net), libre et sans clé.
+   Collection et réglages : stockés dans ce navigateur (localStorage).
+   ========================================================= */
+const API = 'https://api.tcgdex.net/v2';
+const USD_EUR = 0.87;               // conversion indicative pour les prix TCGplayer
+const DETAIL_TTL = 3 * 864e5;       // prix rafraîchis tous les 3 jours
+const CATALOG_TTL = 12 * 36e5;      // nouvelles cartes vérifiées toutes les 12 h
+const NEW_TTL = 30 * 864e5;         // badge "NEW" pendant 30 jours
+const GRID = {4:{c:2,r:2}, 9:{c:3,r:3}, 12:{c:4,r:3}};
+const DIFF = [null,
+  {l:'Facile',      c:'var(--d1)', t:'Se trouve sans effort, souvent pour quelques centimes.'},
+  {l:'Accessible',  c:'var(--d2)', t:'Un peu de recherche, budget modeste.'},
+  {l:'Recherchée',  c:'var(--d3)', t:'Demande de la patience ou un vrai budget.'},
+  {l:'Rare',        c:'var(--d4)', t:'Peu d’exemplaires en vente, prix élevé.'},
+  {l:'Graal',       c:'var(--d5)', t:'Pièce maîtresse : très chère et/ou très peu disponible.'}];
+
+/* ---------- utils ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const el = (t, c, h) => { const e = document.createElement(t); if (c) e.className = c; if (h != null) e.innerHTML = h; return e; };
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const LS = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } }
+};
+const setOf = id => id.slice(0, id.lastIndexOf('-'));
+const num = v => (typeof v === 'number' && v > 0) ? v : null;
+const eur = n => n == null ? '—' : n.toLocaleString('fr-FR', {style:'currency', currency:'EUR', minimumFractionDigits: n < 100 ? 2 : 0, maximumFractionDigits: n < 100 ? 2 : 0});
+const usd = n => n == null ? '—' : n.toLocaleString('fr-FR', {style:'currency', currency:'USD', maximumFractionDigits: 2});
+const fmtDate = d => (!d || d.startsWith('9999')) ? 'Date inconnue' : new Date(d.slice(0,10) + 'T12:00:00').toLocaleDateString('fr-FR', {day:'numeric', month:'long', year:'numeric'});
+const year = d => (d && !d.startsWith('9999')) ? d.slice(0,4) : '?';
+const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+const plural = (n, s, p) => n > 1 ? (p || s + 's') : s;
+async function getJSON(url) { const r = await fetch(url); if (!r.ok) throw new Error(r.status); return r.json(); }
+async function pool(items, n, fn) {
+  let i = 0;
+  await Promise.all(Array.from({length: Math.min(n, items.length)}, async () => {
+    while (i < items.length) { const it = items[i++]; try { await fn(it); } catch (e) {} }
+  }));
+}
+function locKey(l) { const m = String(l).match(/^(\D*)(\d+)(.*)$/); return m ? [m[1] ? 1 : 0, m[1], +m[2], m[3]] : [2, String(l), 0, '']; }
+function cmpLoc(a, b) { const A = locKey(a), B = locKey(b); for (let i = 0; i < 4; i++) { if (A[i] < B[i]) return -1; if (A[i] > B[i]) return 1; } return 0; }
+const imgUrl = (base, q) => base ? `${base}/${q}.webp` : null;
+const assetUrl = base => base ? `${base}.webp` : null;
+
+/* ---------- state ---------- */
+const S = {
+  catalog: LS.get('pk.catalog', null),     // {t, cards:[...]}
+  sets: LS.get('pk.sets', {}),             // id -> infos extension
+  details: LS.get('pk.details', {}),       // id -> {t, d}
+  coll: RO ? (SHARED.collection || {}) : LS.get('pk.coll', {}),             // id -> {variantKey: qty}
+  news: LS.get('pk.news', {}),             // id -> timestamp de découverte
+  settings: Object.assign({pockets: 9, ghost: true, perSet: false, diff: true}, RO ? (SHARED.settings || {}) : LS.get('pk.settings', {})),
+  idx: LS.get('pk.idx', 0),
+  byId: new Map(), pages: [], pageOf: new Map(),
+  single: false, busy: false, quick: false, openId: null, prefetching: false
+};
+const saveColl = () => { if (RO) return; LS.set('pk.coll', S.coll); LS.set('pk.lastEdit', Date.now()); };
+let detailsTimer = null;
+const saveDetails = () => { clearTimeout(detailsTimer); detailsTimer = setTimeout(() => { if (!LS.set('pk.details', S.details)) { /* quota: on garde en mémoire */ } }, 800); };
+
+/* Variantes absentes de TCGdex mais qui existent (corrections connues) */
+const PATCH_VARIANTS = {
+  'basep-4': [{key: 'patch-sans-tampon', type: 'normal', label: 'Normale', sub: 'sans tampon', patch: true}],
+  'sv04.5-018': [{key: 'patch-trick-or-trade-2024', type: 'normal', label: 'Normale', sub: 'tampon Trick or Trade 2024', patch: true}]
+};
+/* Visuels absents de TCGdex : scans trouvés sur la base pokemontcg.io (vérifiés un par un le 6 nov. 2026) */
+const EXTRA_IMG = {
+  '2016xy-6':'mcd16/6','2019sm-6':'mcd19/6','2021swsh-25':'mcd21/25','2022swsh-7':'mcd22/7','sm3.5-28':'sm35/28',
+  'smp-SM168':'smp/SM168','smp-SM170':'smp/SM170','smp-SM183':'smp/SM183','smp-SM190':'smp/SM190','smp-SM194':'smp/SM194',
+  'smp-SM227':'smp/SM227','smp-SM232':'smp/SM232','smp-SM234':'smp/SM234','smp-SM248':'smp/SM248','svp-085':'svp/85',
+  'swsh11tg-TG05':'swsh11tg/TG05','swsh11tg-TG16':'swsh11tg/TG16','swsh11tg-TG17':'swsh11tg/TG17','swsh11tg-TG29':'swsh11tg/TG29',
+  'swsh12.5gg-GG30':'swsh12pt5gg/GG30','swshp-SWSH074':'swshp/SWSH074','tk-ex-latio-6':'tk1b/6'
+};
+S.photos = RO ? (SHARED.photos || {}) : LS.get('pk.photos', {});   // photos perso : id -> dataURL JPEG
+/* Source d'image d'une carte : photo perso > TCGdex > pokemontcg.io */
+function cardImg(c, q) {
+  if (S.photos[c.id]) return S.photos[c.id];
+  if (c.img) return imgUrl(c.img, q);
+  if (EXTRA_IMG[c.id]) return `https://images.pokemontcg.io/${EXTRA_IMG[c.id]}${q === 'high' ? '_hires' : ''}.png`;
+  return null;
+}
+S.custom = RO ? (SHARED.custom || {}) : LS.get('pk.custom', {});   // variantes ajoutées à la main : id -> [{key,type,label,sub,custom:true}]
+const saveCustom = () => RO || LS.set('pk.custom', S.custom);
+function variantsOf(id, d) {
+  d = d || detailOf(id);
+  const base = d?.variants?.length ? d.variants : [{key: 'normal', type: 'normal', label: 'Normale', sub: ''}];
+  const extra = [...(PATCH_VARIANTS[id] || []), ...(S.custom[id] || [])].filter(x => !base.some(b => b.key === x.key));
+  return [...base, ...extra];
+}
+const qtyOf = id => { const v = S.coll[id]; if (!v) return 0; let n = 0; for (const k in v) n += v[k] || 0; return n; };
+const isNew = id => S.news[id] && Date.now() - S.news[id] < NEW_TTL;
+const detailOf = id => S.details[id]?.d || null;
+
+/* ---------- catalogue ---------- */
+function indexCatalog() {
+  S.byId = new Map((S.catalog?.cards || []).map(c => [c.id, c]));
+  buildPages();
+}
+function buildPages() {
+  const per = S.settings.pockets, slots = []; let prev = null;
+  for (const c of (S.catalog?.cards || [])) {
+    if (S.settings.perSet && prev && c.set !== prev) while (slots.length % per) slots.push(null);
+    slots.push(c); prev = c.set;
+  }
+  S.pages = []; S.pageOf = new Map();
+  for (let i = 0; i < slots.length; i += per) S.pages.push(slots.slice(i, i + per));
+  S.pages.forEach((p, i) => p.forEach(c => c && S.pageOf.set(c.id, i + 1)));
+}
+
+async function refreshCatalog(manual) {
+  status('Recherche de nouvelles cartes…', true);
+  try {
+    const [fr, en] = await Promise.all([getJSON(`${API}/fr/cards?name=pikachu`), getJSON(`${API}/en/cards?name=pikachu`)]);
+    const frM = new Map(fr.map(c => [c.id, c])), enM = new Map(en.map(c => [c.id, c]));
+    const ids = [...new Set([...frM.keys(), ...enM.keys()])];
+    const need = [...new Set(ids.map(setOf))].filter(s => !S.sets[s] || manual && S.sets[s].date?.startsWith('9999'));
+    if (!S.catalog) loadMsg(`Lecture de ${need.length} extensions…`);
+    await pool(need, 6, async s => {
+      let d = null, lang = 'fr';
+      try { d = await getJSON(`${API}/fr/sets/${encodeURIComponent(s)}`); } catch (e) {}
+      if (!d) { lang = 'en'; try { d = await getJSON(`${API}/en/sets/${encodeURIComponent(s)}`); } catch (e) {} }
+      if (d) S.sets[s] = {name: d.name, date: d.releaseDate || '9999', serie: d.serie?.id || '', serieName: d.serie?.name || '',
+        logo: d.logo || null, symbol: d.symbol || null, official: d.cardCount?.official ?? null, total: d.cardCount?.total ?? null, lang};
+    });
+    LS.set('pk.sets', S.sets);
+    const cards = [];
+    for (const id of ids) {
+      const f = frM.get(id), e = enM.get(id), s = setOf(id), st = S.sets[s];
+      if (st && st.serie === 'tcgp') continue;               // Pokémon TCG Pocket = cartes numériques, exclues
+      const base = f || e;
+      let img = f?.image || null, imgLang = 'fr';
+      if (!img && e?.image) { img = e.image; imgLang = 'en'; }
+      if (!f) imgLang = 'en';
+      cards.push({id, set: s, localId: base.localId, name: base.name, enName: e?.name || null, lang: f ? 'fr' : 'en', img, imgLang});
+    }
+    const dateOf = c => S.sets[c.set]?.date || '9999';
+    cards.sort((a, b) => { const da = dateOf(a), db = dateOf(b); if (da !== db) return da < db ? -1 : 1; if (a.set !== b.set) return a.set < b.set ? -1 : 1; return cmpLoc(a.localId, b.localId); });
+
+    const old = S.catalog ? new Set(S.catalog.cards.map(c => c.id)) : null;
+    const added = old ? cards.filter(c => !old.has(c.id)) : [];
+    added.forEach(c => S.news[c.id] = Date.now());
+    LS.set('pk.news', S.news);
+    S.catalog = {t: Date.now(), cards};
+    LS.set('pk.catalog', S.catalog);
+    indexCatalog();
+    showApp();
+    if (added.length) toast(`${added.length} ${plural(added.length, 'nouvelle carte')} ${plural(added.length, 'ajoutée')} au binder !`, 'Voir', () => goToCard(added[0].id));
+    else if (manual) toast('Binder à jour : aucune nouvelle carte.');
+    status('');
+    prefetchDetails(manual);
+  } catch (e) {
+    status('');
+    if (!S.catalog) fatal();
+    else toast('Base de cartes injoignable. Affichage des données enregistrées.');
+  }
+}
+
+/* ---------- détails (variantes + prix) ---------- */
+const TYPE = {normal:'Normale', reverse:'Reverse', holo:'Holo'};
+function prettyStamp(s) { return cap(String(s).replace(/-/g, ' ')); }
+function cmPrice(cm, rev) {
+  if (!cm) return {trend: null, avg30: null, low: null, avg7: null, avg1: null};
+  const k = rev ? '-holo' : '';
+  return {trend: num(cm['trend' + k]) ?? num(cm['avg30' + k]), avg30: num(cm['avg30' + k]), low: num(cm['low' + k]), avg7: num(cm['avg7' + k]), avg1: num(cm['avg1' + k])};
+}
+function tcpPrice(tp, type) {
+  if (!tp) return null;
+  const key = type === 'reverse' ? 'reverse-holofoil' : type === 'holo' ? 'holofoil' : 'normal';
+  const o = tp[key] || (type === 'reverse' ? tp.reverse : null) || (type === 'normal' ? (tp.unlimited || tp['1st-edition']) : (tp['unlimited-holofoil'] || tp['1st-edition-holofoil']));
+  return o ? num(o.marketPrice) ?? num(o.midPrice) : null;
+}
+function slimDetail(raw) {
+  const pr = raw.pricing || {};
+  let variants = [];
+  const vd = Array.isArray(raw.variants_detailed) ? raw.variants_detailed : [];
+  if (vd.length) {
+    variants = vd.map((v, i) => {
+      const t = String(v.type || 'normal').toLowerCase();
+      const p = v.pricing || (vd.length === 1 ? pr : null);
+      const parts = [];
+      if (v.foil) parts.push(`foil ${v.foil}`);
+      if (v.subtype) parts.push(cap(v.subtype));
+      if (v.size && v.size !== 'Standard') parts.push(v.size);
+      if (v.stamp && v.stamp.length) parts.push('tampon ' + v.stamp.map(prettyStamp).join(', '));
+      const cm = cmPrice(p?.cardmarket, t === 'reverse');
+      return {key: v.variantId || `${t}-${i}`, type: t, label: TYPE[t] || cap(v.type), sub: parts.join(' · '),
+        cm: cm.trend, cm30: cm.avg30, cmLow: cm.low, cm7: cm.avg7, cm1: cm.avg1, usd: tcpPrice(p?.tcgplayer, t), cmId: v.thirdParty?.cardmarket || null};
+    });
+  } else {
+    const V = raw.variants || {normal: true};
+    const map = {normal:['normal','Normale',''], reverse:['reverse','Reverse',''], holo:['holo','Holo',''], firstEdition:['normal','Normale','1re Édition'], wPromo:['normal','Normale','Promo W']};
+    for (const k in map) if (V[k]) {
+      const [t, l, sub] = map[k]; const plain = !sub; const cm = plain ? cmPrice(pr.cardmarket, t === 'reverse') : {};
+      variants.push({key: k, type: t, label: l, sub, cm: cm.trend ?? null, cm30: cm.avg30 ?? null, cmLow: cm.low ?? null, cm7: cm.avg7 ?? null, cm1: cm.avg1 ?? null, usd: plain ? tcpPrice(pr.tcgplayer, t) : null});
+    }
+    if (!variants.length) variants.push({key: 'normal', type: 'normal', label: 'Normale', sub: ''});
+  }
+  return {
+    name: raw.name, rarity: raw.rarity || null, illustrator: raw.illustrator || null, hp: raw.hp || null,
+    types: raw.types || [], stage: raw.stage || null, category: raw.category || null,
+    variants, cmUpdated: pr.cardmarket?.updated || vd.find(v => v.pricing?.cardmarket)?.pricing.cardmarket.updated || null
+  };
+}
+async function getDetail(c, force) {
+  const cached = S.details[c.id];
+  if (cached && !force && Date.now() - cached.t < DETAIL_TTL) return cached.d;
+  let raw = null;
+  try { raw = await getJSON(`${API}/${c.lang}/cards/${encodeURIComponent(c.id)}`); } catch (e) {}
+  if (!raw && c.lang === 'fr') { try { raw = await getJSON(`${API}/en/cards/${encodeURIComponent(c.id)}`); } catch (e) {} }
+  if (!raw) return cached?.d || null;
+  const d = slimDetail(raw);
+  S.details[c.id] = {t: Date.now(), d}; saveDetails();
+  return d;
+}
+async function prefetchDetails(force) {
+  if (S.prefetching) return; S.prefetching = true;
+  const todo = S.catalog.cards.filter(c => force || !S.details[c.id] || Date.now() - S.details[c.id].t > DETAIL_TTL);
+  let done = 0;
+  if (todo.length) status(`Mise à jour des prix… 0/${todo.length}`, true);
+  await pool(todo, 4, async c => {
+    await getDetail(c, force); done++;
+    if (done % 8 === 0 || done === todo.length) status(`Mise à jour des prix… ${done}/${todo.length}`, true);
+    refreshPocket(c.id, true);
+  });
+  S.prefetching = false; status(''); updateStats();
+}
+
+/* ---------- prix, valeur, difficulté ---------- */
+const vPrice = v => v ? (v.cm ?? (v.usd != null ? v.usd * USD_EUR : null)) : null;
+function difficulty(c, d) {
+  if (!d) return null;
+  const priced = d.variants.map(v => ({v, p: vPrice(v)})).filter(x => x.p != null);
+  const reasons = []; let score;
+  const best = priced.sort((a, b) => a.p - b.p)[0];
+  if (!best) { score = 3.6; reasons.push('Aucune vente suivie sur Cardmarket ni TCGplayer : carte peu échangée, à chercher hors des circuits classiques.'); }
+  else {
+    const p = best.p;
+    score = p < 1 ? 1 : p < 5 ? 1.8 : p < 20 ? 2.6 : p < 60 ? 3.4 : p < 150 ? 4.2 : 5;
+    reasons.push(`Version la plus accessible ≈ ${eur(p)}${best.v.sub ? ' (' + best.v.label + ' · ' + best.v.sub + ')' : ' (' + best.v.label + ')'}.`);
+    const v = best.v;
+    if (v.cm != null && v.cm1 == null && v.cm7 == null) { score += .4; reasons.push('Pas de vente enregistrée ces 7 derniers jours : peu d’exemplaires qui circulent.'); }
+    if (v.cmLow && v.cm30 && v.cm30 / v.cmLow > 2.5) { score += .3; reasons.push('Gros écart entre le prix le plus bas et le prix moyen : marché peu fourni.'); }
+    if (v.cm7 && v.cm30 && v.cm7 > v.cm30 * 1.25) { score += .2; reasons.push('Prix en hausse sur les 7 derniers jours.'); }
+  }
+  const y = +year(S.sets[c.set]?.date);
+  if (y && y < 2008) { score += .5; reasons.push(`Carte ancienne (${y}) : stock en circulation réduit, état souvent variable.`); }
+  if (c.lang === 'en') reasons.push('Pas de version française : à acheter en anglais (Cardmarket, import).');
+  score = Math.max(1, Math.min(5, Math.round(score)));
+  return {score, ...DIFF[score], reasons};
+}
+function ownedValue(id) {
+  const d = detailOf(id), o = S.coll[id]; if (!d || !o) return 0;
+  let s = 0;
+  for (const k in o) { const v = k.startsWith('#') ? variantsOf(id, d)[+k.slice(1)] : d.variants.find(x => x.key === k); const p = vPrice(v); if (p) s += p * o[k]; }
+  return s;
+}
+
+/* ---------- mise en page ---------- */
+function layout() {
+  const st = $('#stage'), W = st.clientWidth - 20, H = st.clientHeight - 16;
+  const {c, r} = GRID[S.settings.pockets] || GRID[9];
+  const gap = .06, pad = .16, head = .24, foot = .16, cv = .3;
+  const pwU = c + (c - 1) * gap + 2 * pad, phU = r * 88 / 63 + (r - 1) * gap + head + foot;
+  const w2 = Math.min(W / (2 * pwU + 2 * cv), H / (phU + 2 * cv), 175);
+  const w1 = Math.min(W / (pwU + 2 * cv), H / (phU + 2 * cv), 175);
+  const wasSingle = S.single;
+  S.single = w2 < 74 && w1 > w2;
+  const w = Math.floor(S.single ? w1 : w2);
+  const R = document.documentElement.style;
+  R.setProperty('--w', w + 'px'); R.setProperty('--h', Math.round(w * 88 / 63) + 'px');
+  R.setProperty('--c', c); R.setProperty('--gap', Math.round(w * gap) + 'px');
+  R.setProperty('--pad', Math.round(w * pad) + 'px'); R.setProperty('--head', Math.round(w * head) + 'px');
+  R.setProperty('--pw', Math.round(w * pwU) + 'px'); R.setProperty('--ph', Math.round(w * phU) + 'px');
+  R.setProperty('--cv', Math.round(w * cv) + 'px'); R.setProperty('--np', S.single ? 1 : 2);
+  if (wasSingle !== S.single) S.idx = S.single ? Math.max(0, S.idx * 2 - (S.idx ? 1 : 0)) : Math.ceil(S.idx / 2);
+}
+const lastPage = () => S.pages.length;                    // pages 1..N, 0 = intérieur de couverture
+const maxIdx = () => S.single ? lastPage() + 1 : Math.floor((lastPage() + 1) / 2);
+const pagesAt = i => S.single ? [i] : [2 * i, 2 * i + 1];
+
+function renderPage(n, side) {
+  const p = el('div', `page ${side}`);
+  if (n === 0) return coverPage(p);
+  if (n > lastPage()) { p.classList.add('endpage'); p.innerHTML = n === lastPage() + 1 ? `<div><div style="font-size:34px">⚡</div><p>Fin du binder.<br>Les prochaines sorties s’ajouteront ici automatiquement.</p></div>` : ''; return p; }
+  const cards = S.pages[n - 1];
+  const sets = [...new Set(cards.filter(Boolean).map(c => c.set))];
+  const head = el('div', 'phead');
+  if (sets.length <= 2) head.innerHTML = sets.map(s => { const st = S.sets[s]; return `<span class="yr">${year(st?.date)}</span><span>${esc(st?.name || s)}</span>`; }).join('<span>·</span>');
+  else { const y1 = year(S.sets[sets[0]]?.date), y2 = year(S.sets[sets[sets.length - 1]]?.date); head.innerHTML = `<span class="yr">${y1}${y2 !== y1 ? '–' + y2 : ''}</span><span>${sets.length} extensions · ${esc(S.sets[sets[0]]?.name || '')} → ${esc(S.sets[sets[sets.length - 1]]?.name || '')}</span>`; head.title = sets.map(s => S.sets[s]?.name || s).join(', '); }
+  p.appendChild(head);
+  const g = el('div', 'grid');
+  const per = S.settings.pockets;
+  for (let i = 0; i < per; i++) g.appendChild(pocketEl(cards[i] || null));
+  p.appendChild(g);
+  p.appendChild(el('div', 'pnum', String(n)));
+  return p;
+}
+function pocketEl(c) {
+  const b = el('button', 'pocket');
+  if (!c) { b.classList.add('empty'); b.tabIndex = -1; return b; }
+  const q = qtyOf(c.id), st = S.sets[c.set];
+  b.dataset.id = c.id;
+  b.classList.add(q ? 'owned' : 'missing');
+  if (!S.settings.ghost) b.classList.add('noghost');
+  b.title = `${c.name} — ${st?.name || c.set} ${c.localId}${c.lang === 'en' ? ' (EN)' : ''}`;
+  const slot = el('div', 'slot', `<b>${esc(c.localId)}${st?.official ? '/' + st.official : ''}</b><span>${esc(c.name)}</span><span>${esc(st?.name || c.set)}</span>`);
+  if (cardImg(c, 'low')) {
+    const img = new Image(); img.alt = ''; img.loading = 'lazy'; img.draggable = false; img.decoding = 'async';
+    img.src = cardImg(c, 'low');
+    img.onerror = () => { const n = el('div', 'noimg', esc(c.name)); img.replaceWith(n); };
+    b.appendChild(img);
+  } else b.appendChild(el('div', 'noimg', `${esc(c.name)}<br>${esc(c.localId)}`));
+  b.appendChild(slot);
+  const bd = el('div', 'badges');
+  if (isNew(c.id)) bd.appendChild(el('span', 'bdg b-new', 'NEW'));
+  if (c.lang === 'en') bd.appendChild(el('span', 'bdg b-en', 'EN'));
+  if (q > 1) bd.appendChild(el('span', 'bdg b-qty', '×' + q));
+  b.appendChild(bd);
+  if (!q && S.settings.diff) { const df = difficulty(c, detailOf(c.id)); if (df) { const d = el('span', 'dot'); d.style.background = df.c; b.appendChild(d); } }
+  return b;
+}
+function refreshPocket(id, onlyIfMissing) {
+  const c = S.byId.get(id); if (!c) return;
+  for (const p of $$(`.pocket[data-id="${CSS.escape(id)}"]`)) { if (onlyIfMissing && !p.classList.contains('missing')) continue; p.replaceWith(pocketEl(c)); }
+}
+function coverPage(p) {
+  p.classList.add('cover-in');
+  const total = S.catalog.cards.length, owned = S.catalog.cards.filter(c => qtyOf(c.id)).length;
+  const copies = S.catalog.cards.reduce((a, c) => a + qtyOf(c.id), 0);
+  const value = S.catalog.cards.reduce((a, c) => a + ownedValue(c.id), 0);
+  const pct = total ? owned / total : 0, R = 54, C = 2 * Math.PI * R;
+  const enCount = S.catalog.cards.filter(c => c.lang === 'en').length;
+  p.innerHTML = `
+    <h2>${RO ? 'Collection de ' + esc(OWNER) : 'Ma collection Pikachu'}</h2>
+    <svg class="ring" viewBox="0 0 140 140"><circle cx="70" cy="70" r="${R}" fill="none" stroke="#ffffff14" stroke-width="12"/>
+      <circle cx="70" cy="70" r="${R}" fill="none" stroke="#F7D02C" stroke-width="12" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - pct)}" transform="rotate(-90 70 70)"/>
+      <text x="70" y="68" text-anchor="middle" fill="#f4f1e8" font-family="Fredoka" font-size="28" font-weight="600">${Math.round(pct * 100)}%</text>
+      <text x="70" y="90" text-anchor="middle" fill="#a19d92" font-size="12">complété</text></svg>
+    <div class="stats">
+      <div><b>${owned} / ${total}</b><span>cartes</span></div>
+      <div><b>${copies}</b><span>${plural(copies, 'exemplaire')}</span></div>
+      <div><b>≈ ${eur(value || 0)}</b><span>valeur estimée</span></div>
+      <div><b>${lastPage()}</b><span>pages · ${S.settings.pockets} pochettes</span></div>
+    </div>
+    <div class="hint">Clique sur une carte pour sa fiche et ses variantes. Active <b>Ajout rapide</b> pour cocher tes cartes à la volée. ${enCount} cartes n’existent qu’en anglais (badge EN).</div>`;
+  return p;
+}
+
+function render() {
+  const book = $('#book'); book.innerHTML = '';
+  S.idx = Math.max(0, Math.min(maxIdx(), S.idx));
+  const ps = pagesAt(S.idx);
+  if (S.single) book.appendChild(renderPage(ps[0], 'single'));
+  else { book.appendChild(renderPage(ps[0], 'left')); book.appendChild(renderPage(ps[1], 'right')); }
+  book.classList.toggle('quick', S.quick);
+  navUI(); preloadAround();
+}
+function navUI() {
+  const ps = pagesAt(S.idx), N = lastPage();
+  const lbl = n => n === 0 ? 'Couverture' : n > N ? 'Fin' : 'p. ' + n;
+  $('#pg').textContent = S.single ? `${lbl(ps[0])} / ${N}` : `${lbl(ps[0])} – ${lbl(ps[1])} / ${N}`;
+  const sc = $('#scrub'); sc.max = maxIdx(); sc.value = S.idx;
+  $('#prev').disabled = S.idx <= 0; $('#next').disabled = S.idx >= maxIdx();
+  LS.set('pk.idx', S.idx);
+}
+function preloadAround() {
+  for (const d of [1, -1]) for (const n of pagesAt(S.idx + d)) {
+    const cards = S.pages[n - 1]; if (!cards) continue;
+    cards.forEach(c => { const u = c && cardImg(c, 'low'); if (u && !u.startsWith('data:')) { const i = new Image(); i.src = u; } });
+  }
+}
+function go(target) {
+  if (S.busy || !S.catalog) return;
+  const ni = Math.max(0, Math.min(maxIdx(), target));
+  if (ni === S.idx) return;
+  const dir = ni > S.idx ? 1 : -1;
+  if (S.single || matchMedia('(prefers-reduced-motion: reduce)').matches) return slide(ni, dir);
+  S.busy = true;
+  const book = $('#book'), L = $('.page.left', book), R = $('.page.right', book);
+  const [nl, nr] = pagesAt(ni);
+  const leaf = el('div', 'leaf ' + (dir > 0 ? 'next' : 'prev'));
+  const front = el('div', 'face front'), back = el('div', 'face back');
+  if (dir > 0) {
+    front.appendChild(R.cloneNode(true)); front.firstChild.className = 'page right';
+    back.appendChild(renderPage(nl, 'left'));
+    R.replaceWith(renderPage(nr, 'right'));
+  } else {
+    front.appendChild(L.cloneNode(true)); front.firstChild.className = 'page left';
+    back.appendChild(renderPage(nr, 'right'));
+    L.replaceWith(renderPage(nl, 'left'));
+  }
+  leaf.append(front, back); book.appendChild(leaf);
+  leaf.getBoundingClientRect();
+  leaf.classList.add('go');
+  let done = false;
+  const end = () => { if (done) return; done = true; S.idx = ni; S.busy = false; render(); };
+  leaf.addEventListener('transitionend', end, {once: true});
+  setTimeout(end, 900);
+}
+function slide(ni, dir) {
+  S.busy = true;
+  const book = $('#book'), cur = [...book.children];
+  cur.forEach(c => { c.classList.add('slideout'); c.style.transform = `translateX(${-dir * 40}px)`; c.style.opacity = 0; });
+  setTimeout(() => {
+    S.idx = ni; render();
+    [...$('#book').children].forEach(c => { c.style.transform = `translateX(${dir * 40}px)`; c.style.opacity = 0; c.getBoundingClientRect(); c.classList.add('slideout'); c.style.transform = ''; c.style.opacity = 1; });
+    setTimeout(() => S.busy = false, 330);
+  }, 200);
+}
+function goToCard(id, open) {
+  const p = S.pageOf.get(id); if (p == null) return;
+  closeAll();
+  const target = S.single ? p : Math.floor(p / 2);
+  if (target !== S.idx) go(target);
+  setTimeout(() => {
+    const e = $(`.pocket[data-id="${CSS.escape(id)}"]`);
+    if (e) { e.animate([{boxShadow: '0 0 0 0 #F7D02C'}, {boxShadow: '0 0 0 6px #F7D02C'}, {boxShadow: '0 0 0 0 #F7D02C'}], {duration: 1100, iterations: 2}); }
+    if (open) openDetail(S.byId.get(id));
+  }, 750);
+}
+
+/* ---------- stats ---------- */
+function updateStats() {
+  if (!S.catalog) return;
+  const total = S.catalog.cards.length, owned = S.catalog.cards.filter(c => qtyOf(c.id)).length;
+  $('#progbar').style.width = (total ? owned / total * 100 : 0) + '%';
+  $('#progtxt').innerHTML = `<b>${owned}</b> / ${total} · ${Math.round(total ? owned / total * 100 : 0)} %`;
+  const cov = $('.cover-in'); if (cov) { const side = cov.classList.contains('single') ? 'single' : cov.classList.contains('left') ? 'left' : 'right'; cov.replaceWith(coverPage(el('div', 'page ' + side))); }
+}
+
+/* ---------- collection ---------- */
+function setQty(id, key, q) {
+  if (RO) return;
+  q = Math.max(0, Math.min(999, q | 0));
+  const o = S.coll[id] || (S.coll[id] = {});
+  if (q) o[key] = q; else delete o[key];
+  if (!Object.keys(o).length) delete S.coll[id];
+  saveColl(); refreshPocket(id); updateStats();
+}
+async function quickAdd(c) {
+  let d = detailOf(c.id) || await getDetail(c);
+  const vars = variantsOf(c.id, d);
+  if (vars.length === 1) {
+    const before = S.coll[c.id]?.[vars[0].key] || 0;
+    setQty(c.id, vars[0].key, before + 1);
+    toast(`${c.name} (${S.sets[c.set]?.name || c.set}) : ×${before + 1}`, 'Annuler', () => setQty(c.id, vars[0].key, before));
+  } else openPicker(c, d);
+}
+function openPicker(c, d) {
+  S.openId = c.id;
+  const box = $('#mbox'); box.style.width = 'min(460px,100%)';
+  box.innerHTML = `<button class="mclose" data-close>${X}</button>
+    <div style="padding:20px">
+      <h2 style="font-size:22px;padding-right:40px">${esc(c.name)}</h2>
+      <div class="muted" style="margin:4px 0 12px">${esc(S.sets[c.set]?.name || c.set)} · ${esc(c.localId)} — quelle variante ajoutes-tu ?</div>
+      ${variantTable(c, d, false)}
+      <div class="links"><button class="btn" data-detail="${esc(c.id)}">Ouvrir la fiche complète</button><button class="btn pri" data-close>Terminé</button></div>
+    </div>`;
+  showModal();
+}
+
+/* ---------- fiche détaillée ---------- */
+const EYE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+/* ---------- aperçu visuel d'une variante (simulé à partir de la photo de la carte) ---------- */
+function variantPreview(c, v) {
+  const t = v.type, sub = (v.sub || '').toLowerCase();
+  const foil = (sub.match(/foil (\w+)/) || [])[1] || '';
+  let fx = '';
+  if (foil === 'cosmos') fx = `<div class="vfx fx-cosmos ${t === 'reverse' ? 'fx-reverse' : 'fx-holo'}"></div>`;
+  else if (/rainbow|gold|or/.test(foil)) fx = '<div class="vfx fx-rainbow"></div>';
+  else if (t === 'reverse') fx = '<div class="vfx fx-reverse"></div>';
+  else if (t === 'holo') fx = '<div class="vfx fx-holo"></div>';
+  const stamps = (sub.match(/tampon ([^·]+)/) || [])[1];
+  let st = '';
+  if (stamps) {
+    const parts = stamps.split(',').map(s => s.trim()).filter(Boolean);
+    for (const s of parts) st += /1re|1st|premi/.test(s) ? '<span class="vstamp first">1</span>' : `<span class="vstamp">${esc(s)}</span>`;
+  }
+  const jumbo = /jumbo/.test(sub) ? '<span class="vjumbo">JUMBO</span>' : '';
+  const img = cardImg(c, 'low') ? `<img src="${cardImg(c, 'low')}" alt="">` : '<div class="vnone">Visuel indisponible</div>';
+  const q = S.coll[c.id]?.[v.key] || 0, p = vPrice(v);
+  return `<div class="vcard">${img}${fx}${st}${jumbo}</div>
+    <div class="vcap"><b>${esc(v.label)}</b>${v.sub ? esc(cap(v.sub)) + '<br>' : ''}${p != null ? '≈ ' + eur(p) : 'Prix inconnu'} · ${q ? 'tu en as ' + q : 'pas encore possédée'}
+    <span class="muted">Aperçu simulé : effet ${t === 'reverse' ? 'reverse (brillance hors illustration)' : t === 'holo' ? 'holo (brillance sur l’illustration)' : 'carte normale, sans brillance'}${stamps ? ', tampon' : ''}. La base de données n’a qu’une photo par carte.</span></div>`;
+}
+function showVariantPreview(anchor) {
+  const c = S.byId.get(anchor.dataset.id), d = detailOf(anchor.dataset.id);
+  const v = variantsOf(anchor.dataset.id, d).find(x => x.key === anchor.dataset.vk); if (!c || !v) return;
+  let pv = $('#vprev'); if (!pv) { pv = el('div', 'vprev'); pv.id = 'vprev'; document.body.appendChild(pv); }
+  pv.innerHTML = variantPreview(c, v);
+  $$('.vname.on').forEach(x => x.classList.remove('on')); anchor.classList.add('on');
+  const r = anchor.getBoundingClientRect(), W = 200, H = pv.offsetHeight || 340;
+  let x, y;
+  if (r.right + 14 + W <= innerWidth - 8) { x = r.right + 14; y = r.top + r.height / 2 - H / 2; }
+  else if (r.left - 14 - W >= 8) { x = r.left - 14 - W; y = r.top + r.height / 2 - H / 2; }
+  else { x = Math.max(8, Math.min(innerWidth - W - 8, r.left)); y = r.bottom + 8 + H <= innerHeight - 8 ? r.bottom + 8 : r.top - H - 8; }
+  y = Math.max(8, Math.min(innerHeight - H - 8, y));
+  pv.style.left = x + 'px'; pv.style.top = y + 'px'; pv.classList.add('show');
+}
+function hideVariantPreview() { $('#vprev')?.classList.remove('show'); $$('.vname.on').forEach(x => x.classList.remove('on')); }
+const canHover = matchMedia('(hover:hover)').matches;
+document.addEventListener('mouseover', e => { if (!canHover) return; const a = e.target.closest?.('.vname[data-vk]'); if (a) showVariantPreview(a); else if (!e.target.closest?.('.vname')) hideVariantPreview(); });
+document.addEventListener('focusin', e => { const a = e.target.closest?.('.vname[data-vk]'); if (a) showVariantPreview(a); });
+document.addEventListener('scroll', hideVariantPreview, true);
+const X = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 6l12 12M18 6 6 18"/></svg>';
+function variantTable(c, d, withPrices) {
+  const vars = variantsOf(c.id, d);
+  const o = S.coll[c.id] || {};
+  const known = new Set(vars.map(v => v.key));
+  const orphans = Object.keys(o).filter(k => !known.has(k) && !k.startsWith('#')).map(k => ({key: k, label: 'Variante archivée', sub: 'ancienne référence, conservée'}));
+  const rows = [...vars, ...orphans].map(v => {
+    const q = o[v.key] || o['#' + vars.indexOf(v)] || 0;
+    return `<tr class="${q ? 'has' : ''}">
+      <td><div class="vname"${known.has(v.key) ? ` data-id="${esc(c.id)}" data-vk="${esc(v.key)}" tabindex="0"` : ''}>${esc(v.label)}${known.has(v.key) ? EYE : ''}</div>${v.sub ? `<div class="vsub">${esc(cap(v.sub))}</div>` : ''}${v.custom ? `<div class="vsub">ajoutée par toi · <a href="#" data-delvar="${esc(c.id)}" data-vk="${esc(v.key)}">supprimer</a></div>` : v.patch ? '<div class="vsub">absente de la base de données, ajoutée manuellement</div>' : ''}</td>
+      ${withPrices ? `<td class="num">${eur(v.cm)}</td><td class="num">${eur(v.cm30)}</td><td class="num">${usd(v.usd)}</td>` : ''}
+      <td style="text-align:right">${RO ? `<b style="color:${q ? 'var(--y)' : 'var(--mut)'}">${q ? '×' + q : '—'}</b>` : `<span class="step" data-id="${esc(c.id)}" data-key="${esc(v.key)}"><button data-d="-1" aria-label="Retirer">−</button><output>${q}</output><button data-d="1" aria-label="Ajouter">+</button></span>`}</td></tr>`;
+  }).join('');
+  return `<div class="vwrap"><table class="vt"><thead><tr><th>Variante</th>${withPrices ? '<th>Cardmarket<br>tendance</th><th>Moy. 30 j</th><th>TCGplayer</th>' : ''}<th style="text-align:right">${RO ? 'Possédées' : 'Je possède'}</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+async function openDetail(c) {
+  if (!c) return;
+  S.openId = c.id;
+  const box = $('#mbox'); box.style.width = '';
+  box.innerHTML = `<button class="mclose" data-close>${X}</button><div class="skel"><div class="spin" style="margin:auto;width:26px;height:26px"></div><p>Chargement de la fiche…</p></div>`;
+  showModal();
+  const d = detailOf(c.id) && Date.now() - S.details[c.id].t < DETAIL_TTL ? detailOf(c.id) : await getDetail(c);
+  if (S.openId !== c.id) return;
+  renderDetail(c, d);
+}
+function renderDetail(c, d) {
+  const st = S.sets[c.set] || {};
+  const df = difficulty(c, d);
+  const q = qtyOf(c.id);
+  const sameSet = S.catalog.cards.filter(x => x.set === c.set && x.id !== c.id);
+  const group = sameSet.filter(x => x.name === c.name);
+  const isUnion = /union/i.test(c.name);
+  const others = S.catalog.cards.filter(x => x.name === c.name && x.set !== c.set);
+  const thumbs = list => `<div class="thumbs">${list.map(x => `<button class="thumb ${qtyOf(x.id) ? '' : 'miss'}" data-open="${esc(x.id)}"><div class="ti">${cardImg(x, 'low') ? `<img src="${cardImg(x, 'low')}" alt="" loading="lazy">` : ''}</div>${esc(x.localId)} · ${esc(year(S.sets[x.set]?.date))}</button>`).join('')}</div>`;
+  const searchName = (c.enName || c.name);
+  const cmLink = `https://www.cardmarket.com/fr/Pokemon/Products/Search?searchString=${encodeURIComponent(searchName)}`;
+  const tcpLink = `https://www.tcgplayer.com/search/pokemon/product?q=${encodeURIComponent(searchName + ' ' + (c.localId || ''))}`;
+  $('#mbox').innerHTML = `<button class="mclose" data-close>${X}</button>
+  <div class="det">
+    <div class="art">
+      <div class="cardimg" id="tilt">${cardImg(c, 'high') ? `<img src="${cardImg(c, 'high')}" alt="${esc(c.name)}" onerror="if(!this.dataset.f){this.dataset.f=1;this.src=this.src.replace('_hires','')}">` : `<div class="noimg" style="position:absolute;inset:0;display:grid;place-items:center;color:var(--mut);text-align:center;padding:20px">Visuel introuvable dans les bases de cartes.<br>Ajoute ta propre photo ci-dessous.</div>`}<div class="holo"></div></div>
+      <div class="owned-tag">${q ? `<b style="color:var(--y)">${RO ? 'Dans la collection de ' + esc(OWNER) : 'Dans ta collection'}</b> · ${q} ${plural(q, 'exemplaire')}` : RO ? `<b style="color:var(--d4)">Il manque cette carte à ${esc(OWNER)}</b>` : 'Pas encore dans ta collection'}</div>
+      ${S.photos[c.id] ? '<div class="muted" style="text-align:center;margin-top:4px">Ta photo.</div>' : c.lang === 'fr' && (c.imgLang === 'en' || !c.img) && cardImg(c, 'low') ? '<div class="muted" style="text-align:center;margin-top:4px">Visuel FR indisponible : aperçu de la version EN.</div>' : ''}
+      ${RO ? '' : `<div class="links" style="justify-content:center"><button class="btn" data-photo="${esc(c.id)}">${S.photos[c.id] ? 'Changer ma photo' : 'Ajouter ma photo'}</button>${S.photos[c.id] ? `<button class="btn" data-unphoto="${esc(c.id)}">Retirer</button>` : ''}</div>`}
+    </div>
+    <div>
+      <h2>${esc(c.name)}</h2>
+      <div class="chips">
+        ${c.lang === 'fr' ? '<span class="chip fr">Version française</span>' : '<span class="chip en">Version anglaise · pas de sortie FR</span>'}
+        ${d?.rarity ? `<span class="chip">${esc(d.rarity)}</span>` : ''}
+        ${d?.hp ? `<span class="chip">${d.hp} PV</span>` : ''}
+        ${isNew(c.id) ? '<span class="chip" style="background:var(--y);color:#1a1606">Nouveauté</span>' : ''}
+      </div>
+      <div class="info">
+        <div><span>Extension</span><b>${st.logo ? `<img class="setlogo" src="${assetUrl(st.logo)}" alt="" onerror="this.remove()">` : ''}${esc(st.name || c.set)}</b></div>
+        <div><span>Sortie</span><b>${fmtDate(st.date)}</b></div>
+        <div><span>Numéro</span><b>${esc(c.localId)}${st.official ? ' / ' + st.official : ''}</b></div>
+        <div><span>Série</span><b>${esc(st.serieName || '—')}</b></div>
+        ${d?.illustrator ? `<div><span>Illustration</span><b>${esc(d.illustrator)}</b></div>` : ''}
+        <div><span>Dans le binder</span><b><a href="#" data-goto="${esc(c.id)}">Page ${S.pageOf.get(c.id)}</a></b></div>
+      </div>
+
+      <div class="sec">Difficulté d’obtention</div>
+      ${df ? `<div class="diff"><div class="meter">${[1,2,3,4,5].map(i => `<i style="${i <= df.score ? 'background:' + df.c : ''}"></i>`).join('')}</div>
+        <div><h3 style="color:${df.c}">${df.l}</h3><div class="muted">${df.t}</div><ul>${df.reasons.map(r => `<li>${esc(r)}</li>`).join('')}</ul></div></div>`
+        : '<div class="muted">Données de marché indisponibles pour le moment.</div>'}
+
+      <div class="sec">Variantes, prix estimé et exemplaires</div>
+      ${variantTable(c, d, true)}
+      ${RO ? '' : `<details class="addvar"><summary>Une variante manque ?</summary>
+        <div class="addrow"><select id="avType"><option value="normal">Normale</option><option value="reverse">Reverse</option><option value="holo">Holo</option></select>
+        <input id="avSub" class="srch" placeholder="Précision : sans tampon, tampon Pokémon Center…" maxlength="60">
+        <button class="btn pri" data-addvar="${esc(c.id)}">Ajouter</button></div>
+        <div class="muted">Elle s’ajoute à cette carte pour que tu puisses la cocher. Pas de prix pour une variante ajoutée à la main.</div></details>`}
+      <div class="muted" style="margin-top:6px">Prix Cardmarket en euros (tendance = prix de référence du marché)${d?.cmUpdated ? ', relevés le ' + fmtDate(d.cmUpdated) : ''}. TCGplayer = marché américain, en dollars. Estimations indicatives, état « Near Mint ».</div>
+      <div class="links">
+        <a class="btn" href="${cmLink}" target="_blank" rel="noopener">Voir sur Cardmarket ↗</a>
+        <a class="btn" href="${tcpLink}" target="_blank" rel="noopener">Voir sur TCGplayer ↗</a>
+        <button class="btn" data-reprice="${esc(c.id)}">Rafraîchir les prix</button>
+      </div>
+
+      ${group.length ? `<div class="sec">${isUnion ? 'Pièces du même puzzle V-UNION' : 'Même carte, autres numéros dans cette extension'}</div>${thumbs(group)}` : ''}
+      ${sameSet.filter(x => x.name !== c.name).length ? `<div class="sec">Autres Pikachu de « ${esc(st.name || c.set)} »</div>${thumbs(sameSet.filter(x => x.name !== c.name))}` : ''}
+      ${others.length ? `<div class="sec">« ${esc(c.name)} » dans d’autres extensions</div>${thumbs(others.slice(0, 30))}` : ''}
+    </div>
+  </div>`;
+  const t = $('#tilt');
+  if (t && matchMedia('(hover:hover)').matches) {
+    t.parentElement.onmousemove = e => { const r = t.getBoundingClientRect(); const x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height; t.style.transform = `rotateY(${(x - .5) * 16}deg) rotateX(${(.5 - y) * 16}deg)`; t.style.setProperty('--mx', x * 100 + '%'); t.style.setProperty('--my', y * 100 + '%'); };
+    t.parentElement.onmouseleave = () => t.style.transform = '';
+  }
+}
+
+/* ---------- tiroirs ---------- */
+function openDrawer(title, html, after) {
+  $('#dtitle').textContent = title; $('#dbody').innerHTML = html;
+  $('#drawer').classList.add('show'); $('#ov').classList.add('show');
+  if (after) after($('#dbody'));
+}
+function cardRow(c, right) {
+  const st = S.sets[c.set];
+  return `<button class="row ${qtyOf(c.id) ? '' : 'miss'}" data-open="${esc(c.id)}"><div class="ri">${cardImg(c, 'low') ? `<img src="${cardImg(c, 'low')}" alt="" loading="lazy">` : ''}</div>
+    <div class="rt"><b>${esc(c.name)}${c.lang === 'en' ? ' <span class="bdg b-en">EN</span>' : ''}</b><small>${esc(st?.name || c.set)} · ${esc(c.localId)} · ${year(st?.date)}</small></div><div class="rr">${right || ''}</div></button>`;
+}
+function openIndex() {
+  const bySet = new Map();
+  for (const c of S.catalog.cards) { if (!bySet.has(c.set)) bySet.set(c.set, []); bySet.get(c.set).push(c); }
+  let html = '', curY = null;
+  for (const [s, cards] of bySet) {
+    const st = S.sets[s] || {}, y = year(st.date), own = cards.filter(c => qtyOf(c.id)).length;
+    if (y !== curY) { html += `<div class="yearh">${y}</div>`; curY = y; }
+    html += `<button class="row setrow" data-goto="${esc(cards[0].id)}"><div class="ri">${st.symbol ? `<img src="${assetUrl(st.symbol)}" alt="" onerror="this.remove()">` : ''}</div>
+      <div class="rt"><b>${esc(st.name || s)}</b><small>${fmtDate(st.date)} · page ${S.pageOf.get(cards[0].id)}</small><div class="mini"><i style="width:${own / cards.length * 100}%"></i></div></div>
+      <div class="rr"><b>${own}/${cards.length}</b></div></button>`;
+  }
+  openDrawer(`Sommaire · ${bySet.size} extensions`, html);
+}
+function openSearch() {
+  openDrawer('Rechercher', `<input class="srch" id="q" placeholder="Nom, extension, numéro, code (SVP190)… ou colle un lien Cardmarket" autocomplete="off">
+    <div class="seg" id="qf"><button class="on" data-f="all">Toutes</button><button data-f="own">Possédées</button><button data-f="miss">Manquantes</button><button data-f="en">EN</button></div><div id="qr"></div>`, body => {
+    const q = $('#q', body); let f = 'all';
+    const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+    const run = () => {
+      let raw = q.value.trim();
+      // Lien Cardmarket : on garde le dernier segment (ex. « Pikachu-V3-SVP190 »)
+      const cm = raw.match(/cardmarket\.com\/\S*\/([^\/?#\s]+)/i);
+      if (cm) raw = cm[1].replace(/-/g, ' ').replace(/\bV\d+\b/gi, ' ');
+      let terms = norm(raw).split(/\s+/).filter(Boolean);
+      if (cm) { const codeT = terms.filter(t => /[a-z]/.test(t) && /\d/.test(t)).pop(); if (codeT) terms = [codeT]; }
+      const res = S.catalog.cards.filter(c => {
+        if (f === 'own' && !qtyOf(c.id)) return false; if (f === 'miss' && qtyOf(c.id)) return false; if (f === 'en' && c.lang !== 'en') return false;
+        const st = S.sets[c.set] || {};
+        const code = norm(c.set.replace(/[^a-z0-9]/gi, '') + c.localId), code2 = norm(c.set.replace(/[^a-z0-9]/gi, '') + String(c.localId).replace(/^0+/, ''));
+        const hay = norm([c.name, c.enName, st.name, st.serieName, c.localId, c.set, code, code2, year(st.date), detailOf(c.id)?.rarity, detailOf(c.id)?.illustrator].join(' '));
+        const digits = s => (s.match(/\d+/) || [])[0];
+        return terms.every(t => hay.includes(t) || (/[a-z]/.test(t) && /\d/.test(t) && digits(t) && +digits(t) === +digits(String(c.localId)) && hay.includes(t.replace(/\d+.*$/, '').slice(0, 2))));
+      });
+      $('#qr', body).innerHTML = `<div class="muted" style="margin:6px 8px">${res.length} ${plural(res.length, 'résultat')}</div>` + res.slice(0, 200).map(c => cardRow(c, qtyOf(c.id) ? `<b>×${qtyOf(c.id)}</b>` : '')).join('');
+    };
+    q.oninput = run;
+    $('#qf', body).onclick = e => { const b = e.target.closest('button'); if (!b) return; f = b.dataset.f; $$('#qf button', body).forEach(x => x.classList.toggle('on', x === b)); run(); };
+    run(); setTimeout(() => q.focus(), 250);
+  });
+}
+function openWish() {
+  openDrawer(RO ? `Il manque à ${OWNER}` : 'Cartes manquantes', `<p class="muted" style="margin:0 8px 6px">${RO ? `Les cartes qu\u2019il manque à ${esc(OWNER)}. Tu en as une en double ? Dis-le-lui !` : 'Pour planifier tes achats.'} Pastille de couleur = difficulté (vert facile → rouge graal).</p>
+    <div class="links" style="margin:0 8px 6px"><button class="btn" id="wCopy">Copier la liste</button></div>
+    <div class="seg" id="wf"><button class="on" data-s="diff">Plus faciles d’abord</button><button data-s="price">Moins chères</button><button data-s="date">Chronologique</button></div><div id="wl"></div>`, body => {
+    const run = s => {
+      const miss = S.catalog.cards.filter(c => !qtyOf(c.id)).map(c => { const d = detailOf(c.id), df = difficulty(c, d); const ps = (d?.variants || []).map(vPrice).filter(x => x != null); return {c, df, p: ps.length ? Math.min(...ps) : null}; });
+      if (s === 'diff') miss.sort((a, b) => (a.df?.score ?? 9) - (b.df?.score ?? 9) || (a.p ?? 1e9) - (b.p ?? 1e9));
+      if (s === 'price') miss.sort((a, b) => (a.p ?? 1e9) - (b.p ?? 1e9));
+      const sum = miss.reduce((a, x) => a + (x.p || 0), 0);
+      $('#wl', body).innerHTML = `<div class="muted" style="margin:6px 8px">${miss.length} ${plural(miss.length, 'carte')} · budget estimé pour tout compléter ≈ <b style="color:var(--txt)">${eur(sum)}</b> (version la moins chère de chaque carte)</div>` +
+        miss.map(x => cardRow(x.c, `<b>${x.p != null ? eur(x.p) : '—'}</b>${x.df ? `<span style="color:${x.df.c}">● ${x.df.l}</span>` : ''}`)).join('');
+    };
+    $('#wf', body).onclick = e => { const b = e.target.closest('button'); if (!b) return; $$('#wf button', body).forEach(x => x.classList.toggle('on', x === b)); run(b.dataset.s); };
+    $('#wCopy', body).onclick = async () => {
+      const lines = S.catalog.cards.filter(c => !qtyOf(c.id)).map(c => { const st = S.sets[c.set] || {}, ps = variantsOf(c.id).map(vPrice).filter(x => x != null); return `- ${c.name} — ${st.name || c.set} n° ${c.localId}${st.official ? '/' + st.official : ''} (${year(st.date)}${c.lang === 'en' ? ', EN' : ''})${ps.length ? ' — ≈ ' + eur(Math.min(...ps)) : ''}`; });
+      const txt = `Cartes Pikachu manquantes${RO ? ' de ' + OWNER : ''} (${lines.length}) :\n` + lines.join('\n');
+      try { await navigator.clipboard.writeText(txt); toast('Liste copiée.'); } catch (e) { toast('Copie impossible dans ce navigateur.'); }
+    };
+    run('diff');
+  });
+}
+function exportData() {
+  return JSON.stringify({app: 'binder-pikachu', version: 1, exportedAt: new Date().toISOString(), collection: S.coll, customVariants: S.custom, photos: S.photos, settings: S.settings}, null, 1);
+}
+function openBackup() {
+  const last = LS.get('pk.lastExport', null), n = Object.keys(S.coll).length;
+  openDrawer('Sauvegarde', `
+    <div class="field"><p>Ta collection (${n} ${plural(n, 'carte')}) est enregistrée <b>dans ce navigateur, sur cet appareil</b>. Si tu vides les données du navigateur ou changes d’ordinateur, elle disparaît : exporte une sauvegarde de temps en temps.</p>
+      <p>Dernier export : <b>${last ? fmtDate(new Date(last).toISOString()) : 'jamais'}</b></p></div>
+    <div class="field"><label class="t">Exporter</label><p>Télécharge un petit fichier .json avec toutes tes cartes.</p>
+      <div class="links"><button class="btn pri" id="bxDl">Télécharger la sauvegarde</button><button class="btn" id="bxCp">Copier</button></div></div>
+    <div class="field"><label class="t">Importer</label><p>Recharge un fichier de sauvegarde (par ex. sur un autre ordinateur).</p>
+      <div class="links"><button class="btn" id="bxImp">Choisir un fichier…</button></div><div id="bxRes"></div></div>
+    <div class="field"><label class="t">Ou coller une sauvegarde</label><textarea class="code" id="bxTxt" placeholder='{"app":"binder-pikachu", …}'></textarea>
+      <div class="links"><button class="btn" id="bxPaste">Importer le texte collé</button></div></div>
+    <div class="field"><label class="t">Tout effacer</label><p>Vide ta collection dans ce navigateur (le catalogue de cartes est conservé).</p><button class="btn danger" id="bxReset">Effacer ma collection</button></div>`, body => {
+    $('#bxDl', body).onclick = () => {
+      const blob = new Blob([exportData()], {type: 'application/json'}), a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = `binder-pikachu-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+      LS.set('pk.lastExport', Date.now()); toast('Sauvegarde téléchargée.');
+    };
+    $('#bxCp', body).onclick = async () => { try { await navigator.clipboard.writeText(exportData()); LS.set('pk.lastExport', Date.now()); toast('Sauvegarde copiée dans le presse-papiers.'); } catch (e) { $('#bxTxt', body).value = exportData(); toast('Copie bloquée : le texte est dans le champ ci-dessous.'); } };
+    $('#bxImp', body).onclick = () => $('#fileIn').click();
+    $('#bxPaste', body).onclick = () => askImport($('#bxTxt', body).value, $('#bxRes', body));
+    const rs = $('#bxReset', body);
+    rs.onclick = () => { if (rs.dataset.armed) { S.coll = {}; saveColl(); render(); updateStats(); toast('Collection effacée.'); closeAll(); } else { rs.dataset.armed = 1; rs.textContent = 'Clique encore pour confirmer'; setTimeout(() => { delete rs.dataset.armed; rs.textContent = 'Effacer ma collection'; }, 4000); } };
+    $('#fileIn').onchange = e => { const f = e.target.files[0]; if (!f) return; f.text().then(t => askImport(t, $('#bxRes', body))); e.target.value = ''; };
+  });
+}
+function askImport(text, target) {
+  let data; try { data = JSON.parse(text); } catch (e) { target.innerHTML = '<p style="color:#ff8a70">Fichier illisible : ce n’est pas une sauvegarde valide.</p>'; return; }
+  const coll = data.collection || data; if (typeof coll !== 'object' || Array.isArray(coll)) { target.innerHTML = '<p style="color:#ff8a70">Aucune collection trouvée dans ce fichier.</p>'; return; }
+  const n = Object.keys(coll).length;
+  target.innerHTML = `<p>${n} ${plural(n, 'carte')} dans ce fichier. Que faire ?</p><div class="links"><button class="btn pri" data-m="replace">Remplacer ma collection</button><button class="btn" data-m="merge">Fusionner (garder le max)</button></div>`;
+  target.onclick = e => {
+    const b = e.target.closest('[data-m]'); if (!b) return;
+    if (b.dataset.m === 'replace') S.coll = {};
+    for (const id in coll) { const o = coll[id]; if (!o || typeof o !== 'object') continue; S.coll[id] = S.coll[id] || {}; for (const k in o) { const q = Math.max(0, o[k] | 0); if (q) S.coll[id][k] = Math.max(S.coll[id][k] || 0, q); } if (!Object.keys(S.coll[id]).length) delete S.coll[id]; }
+    if (data.customVariants && typeof data.customVariants === 'object') { for (const id in data.customVariants) { const cur = S.custom[id] || []; for (const v of data.customVariants[id] || []) if (v && v.key && !cur.some(x => x.key === v.key)) cur.push(v); if (cur.length) S.custom[id] = cur; } saveCustom(); }
+    if (data.photos && typeof data.photos === 'object') { for (const id in data.photos) if (typeof data.photos[id] === 'string' && data.photos[id].startsWith('data:image/')) S.photos[id] = data.photos[id]; LS.set('pk.photos', S.photos); }
+    if (data.settings) Object.assign(S.settings, data.settings), LS.set('pk.settings', S.settings), buildPages(), layout();
+    saveColl(); render(); updateStats(); closeAll(); toast('Sauvegarde importée.');
+  };
+}
+function openSettings() {
+  const s = S.settings;
+  openDrawer('Réglages', `
+    <div class="field"><label class="t">Format des pages</label><p>Comme ton Vaultx : nombre de pochettes par page.</p>
+      <div class="seg" id="stP">${[4, 9, 12].map(n => `<button data-n="${n}" class="${s.pockets === n ? 'on' : ''}">${n} pochettes</button>`).join('')}</div></div>
+    <label class="switch"><span><b>Cartes manquantes en transparence</b><br><span class="muted">Sinon, simple emplacement avec le numéro.</span></span><input type="checkbox" id="stG" ${s.ghost ? 'checked' : ''}></label>
+    <label class="switch"><span><b>Nouvelle page à chaque extension</b><br><span class="muted">Laisse des pochettes vides en fin d’extension, comme un rangement par set.</span></span><input type="checkbox" id="stS" ${s.perSet ? 'checked' : ''}></label>
+    <label class="switch"><span><b>Pastille de difficulté</b><br><span class="muted">Sur les cartes manquantes.</span></span><input type="checkbox" id="stD" ${s.diff ? 'checked' : ''}></label>
+    <div class="field"><label class="t">Données</label><p>Cartes, extensions, visuels et prix viennent de TCGdex (base communautaire libre), elle-même alimentée par Cardmarket et TCGplayer pour les prix. Les nouvelles extensions apparaissent automatiquement quand TCGdex les ajoute (vérification toutes les 12 h, ou bouton Actualiser). Les cartes Pokémon TCG Pocket (numériques) sont exclues.</p>
+      <p>Dernière vérification : <b>${S.catalog ? new Date(S.catalog.t).toLocaleString('fr-FR') : '—'}</b></p></div>`, body => {
+    const apply = () => { if (!RO) LS.set('pk.settings', s); buildPages(); layout(); render(); updateStats(); };
+    $('#stP', body).onclick = e => { const b = e.target.closest('button'); if (!b) return; const first = pagesAt(S.idx).map(n => S.pages[n - 1]?.find(Boolean)).find(Boolean); s.pockets = +b.dataset.n; $$('#stP button', body).forEach(x => x.classList.toggle('on', x === b)); buildPages(); layout(); if (first) { const p = S.pageOf.get(first.id); S.idx = S.single ? p : Math.floor(p / 2); } apply(); };
+    $('#stG', body).onchange = e => { s.ghost = e.target.checked; apply(); };
+    $('#stS', body).onchange = e => { s.perSet = e.target.checked; apply(); };
+    $('#stD', body).onchange = e => { s.diff = e.target.checked; apply(); };
+  });
+}
+
+/* ---------- modal / overlays ---------- */
+function showModal() { $('#modal').classList.add('show'); $('#ov').classList.add('show'); }
+function closeAll() { $('#modal').classList.remove('show'); $('#drawer').classList.remove('show'); $('#ov').classList.remove('show'); S.openId = null; }
+let toastT;
+function toast(msg, action, fn) {
+  const t = $('#toast'); t.innerHTML = `<span>${esc(msg)}</span>${action ? `<button>${esc(action)}</button>` : ''}`;
+  if (action) t.querySelector('button').onclick = () => { fn(); t.classList.remove('show'); };
+  t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), action ? 6000 : 3200);
+}
+function status(msg, spin) { $('#status').innerHTML = msg ? `${spin ? '<span class="spin"></span>' : ''}${esc(msg)}` : ''; }
+function loadMsg(m) { const e = $('#loadmsg'); if (e) e.textContent = m; }
+function fatal() {
+  $('#loading').innerHTML = `<div class="err"><div style="font-size:40px">⚡</div><h2>Impossible de charger les cartes</h2>
+    <p>La base TCGdex ne répond pas. Vérifie ta connexion internet puis réessaie.</p><button class="btn pri" onclick="location.reload()">Réessayer</button></div>`;
+}
+function applyReadOnly() {
+  if (!RO) return;
+  $$('[data-act="quick"],[data-act="backup"],[data-act="share"]').forEach(b => b.remove());
+  const d = SHARED.date ? new Date(SHARED.date).toLocaleDateString('fr-FR', {day: 'numeric', month: 'long', year: 'numeric'}) : '';
+  $('#sub').textContent = `Collection de ${OWNER}${d ? ' au ' + d : ''} · lecture seule`;
+  document.title = `Binder Pikachu de ${OWNER}`;
+}
+applyReadOnly();
+const ONLINE_URL = 'https://disyth.github.io/binder-pikachu/';
+/* Lien de partage : la collection est encodée dans l'adresse (#v1=…), sans serveur.
+   Format : set:numéro[.indexVariante][*quantité],… ; set2:… */
+function encodeShareLink(name) {
+  const bySet = new Map();
+  for (const id in S.coll) {
+    const c = S.byId.get(id); if (!c) continue;
+    const vars = variantsOf(id);
+    for (const k in S.coll[id]) {
+      const q = S.coll[id][k]; if (!q) continue;
+      const v = vars.find(x => x.key === k);
+      let i = vars.indexOf(v); if (i < 0) i = 0;
+      // variantes ajoutées (patch / perso) : on garde leur clé, plus stable qu'un index
+      const tag = v && (v.patch || v.custom) && /^[a-z0-9-]+$/i.test(k) ? '~' + k : (i ? '.' + i : '');
+      const it = c.localId + tag + (q > 1 ? '*' + q : '');
+      if (!bySet.has(c.set)) bySet.set(c.set, []); bySet.get(c.set).push(it);
+    }
+  }
+  const v1 = [...bySet].map(([s, items]) => s + ':' + items.join(',')).join(';');
+  const p = new URLSearchParams();
+  p.set('o', name); p.set('d', new Date().toISOString().slice(0, 10).replace(/-/g, '')); p.set('p', S.settings.pockets);
+  if (Object.keys(S.custom).length) p.set('x', JSON.stringify(S.custom));
+  const base = /^https?:/.test(location.protocol) ? location.origin + location.pathname : ONLINE_URL;
+  return base + '#v1=' + v1 + '&' + p.toString().replace(/\+/g, '%20');
+}
+function openShare() {
+  const owner = LS.get('pk.owner', ''), nPh = Object.keys(S.photos).length;
+  const online = /^https?:/.test(location.protocol);
+  openDrawer('Partager en lecture seule', `
+    <div class="field"><p>Tes amis pourront <b>feuilleter ta collection, voir les fiches et la liste des cartes qui te manquent</b>, sans pouvoir la modifier.</p></div>
+    <div class="field"><label class="t">Ton prénom ou pseudo</label><p>Affiché en haut : « Collection de … ».</p><input class="srch" id="shName" value="${esc(owner)}" placeholder="Ex. Damien" maxlength="40"></div>
+    <div class="field"><label class="t">Lien à partager</label>
+      <p>Un lien vers la version en ligne. Ta collection est dans le lien lui-même : c\u2019est une photo de ta collection à l\u2019instant où tu le copies. Après de nouveaux ajouts, recopie le lien et renvoie-le.${nPh ? ' Tes photos perso ne passent pas dans le lien.' : ''}</p>
+      ${online ? '' : `<p>Ton binder est ouvert depuis un fichier : pour que le lien affiche ta collection à jour, utilise plutôt la version en ligne <a href="${ONLINE_URL}" target="_blank" rel="noopener">${ONLINE_URL}</a> (importe ta sauvegarde la 1re fois).</p>`}
+      <div class="links"><button class="btn pri" id="shLink">Copier le lien de partage</button></div><div id="shOut"></div></div>
+    <details class="addvar"><summary>Autre option : fichier à télécharger</summary>
+      ${nPh ? `<label class="switch"><span><b>Inclure mes photos</b><br><span class="muted">${nPh} ${plural(nPh, 'photo')}</span></span><input type="checkbox" id="shPh" checked></label>` : ''}
+      <div class="links"><button class="btn" id="shGo">Télécharger la version à partager</button></div></details>
+    <div class="field"><p class="muted">Ce que tes amis font de leur côté ne peut jamais toucher ta collection.</p></div>`, body => {
+    const getName = () => { const n = $('#shName', body).value.trim() || 'un ami'; LS.set('pk.owner', n); return n; };
+    $('#shLink', body).onclick = async () => {
+      const url = encodeShareLink(getName());
+      try { await navigator.clipboard.writeText(url); toast('Lien copié : colle-le à tes amis.'); }
+      catch (e) { toast('Copie bloquée : sélectionne le lien ci-dessous.'); }
+      $('#shOut', body).innerHTML = `<textarea class="code" readonly style="height:80px;margin-top:8px">${esc(url)}</textarea><p class="muted">${url.length} caractères.</p>`;
+      $('#shOut textarea', body).onclick = e => e.target.select();
+    };
+    $('#shGo', body).onclick = () => {
+      const name = getName();
+      const data = {owner: name, date: new Date().toISOString(), collection: S.coll, custom: S.custom,
+        photos: ($('#shPh', body)?.checked ?? false) ? S.photos : {}, settings: {pockets: S.settings.pockets, ghost: S.settings.ghost, perSet: S.settings.perSet, diff: S.settings.diff}};
+      let src = SOURCE.replace(/<script id="pk-shared">window\.PK_SHARED=[^\n]*<\/script>\n/, '');
+      const inj = `<script id="pk-shared">window.PK_SHARED=${JSON.stringify(data).replace(/</g, '\\u003c')};<\/script>\n`;
+      const i = src.indexOf("<script>\n'use strict';");
+      if (i < 0) return toast('Impossible de créer le fichier.');
+      src = src.slice(0, i) + inj + src.slice(i);
+      const slug = name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'partage';
+      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([src], {type: 'text/html'}));
+      a.download = `binder-pikachu-${slug}-lecture-seule.html`; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 3000); toast('Fichier à partager téléchargé.');
+    };
+  });
+}
+function showApp() {
+  $('#loading').style.display = 'none'; $('#binder').style.display = ''; $('#nav').style.display = '';
+  layout(); render(); updateStats();
+}
+
+/* ---------- événements ---------- */
+document.addEventListener('click', e => {
+  const t = e.target;
+  const step = t.closest('.step button');
+  if (step) { const sp = step.parentElement, id = sp.dataset.id, key = sp.dataset.key; const out = sp.querySelector('output'); const q = (+out.value || +out.textContent || 0) + (+step.dataset.d); setQty(id, key, q); out.textContent = Math.max(0, q); sp.closest('tr')?.classList.toggle('has', q > 0);
+    const tag = $('.owned-tag'); if (tag) { const n = qtyOf(id); tag.innerHTML = n ? `<b style="color:var(--y)">Dans ta collection</b> · ${n} ${plural(n, 'exemplaire')}` : 'Pas encore dans ta collection'; } return; }
+  const vn = t.closest('.vname[data-vk]');
+  if (vn) { if (!canHover && vn.classList.contains('on') && $('#vprev')?.classList.contains('show')) hideVariantPreview(); else showVariantPreview(vn); return; }
+  hideVariantPreview();
+  if (t.closest('[data-close]') || t === $('#ov')) return closeAll();
+  if (t.closest('.modal') && !t.closest('.mbox')) return closeAll();
+  const pk = t.closest('.pocket[data-id]');
+  if (pk && !S.busy) { const c = S.byId.get(pk.dataset.id); return S.quick ? quickAdd(c) : openDetail(c); }
+  const op = t.closest('[data-open]'); if (op) { const c = S.byId.get(op.dataset.open); $('#drawer').classList.remove('show'); return openDetail(c); }
+  const dt = t.closest('[data-detail]'); if (dt) return openDetail(S.byId.get(dt.dataset.detail));
+  const gt = t.closest('[data-goto]'); if (gt) { e.preventDefault(); return goToCard(gt.dataset.goto); }
+  const av = t.closest('[data-addvar]');
+  if (av) {
+    const id = av.dataset.addvar, c = S.byId.get(id), type = $('#avType').value, sub = $('#avSub').value.trim();
+    const v = {key: 'u-' + Date.now().toString(36), type, label: TYPE[type], sub, custom: true};
+    (S.custom[id] = S.custom[id] || []).push(v); saveCustom();
+    renderDetail(c, detailOf(id)); toast(`Variante ajoutée : ${v.label}${sub ? ' · ' + sub : ''}`); return;
+  }
+  const dv = t.closest('[data-delvar]');
+  if (dv) {
+    e.preventDefault();
+    const id = dv.dataset.delvar, k = dv.dataset.vk;
+    if (S.coll[id]?.[k]) return toast('Remets d’abord la quantité à 0 pour supprimer cette variante.');
+    S.custom[id] = (S.custom[id] || []).filter(v => v.key !== k); if (!S.custom[id].length) delete S.custom[id]; saveCustom();
+    renderDetail(S.byId.get(id), detailOf(id)); return;
+  }
+  const ph = t.closest('[data-photo]');
+  if (ph) { const fi = $('#photoIn'); fi.dataset.id = ph.dataset.photo; fi.click(); return; }
+  const uph = t.closest('[data-unphoto]');
+  if (uph) { const id = uph.dataset.unphoto; delete S.photos[id]; LS.set('pk.photos', S.photos); refreshPocket(id); renderDetail(S.byId.get(id), detailOf(id)); return; }
+  const rp = t.closest('[data-reprice]'); if (rp) { const c = S.byId.get(rp.dataset.reprice); rp.textContent = 'Mise à jour…'; getDetail(c, true).then(d => { if (S.openId === c.id) renderDetail(c, d); refreshPocket(c.id); }); return; }
+  const tb = t.closest('.tb'); if (tb) {
+    const a = tb.dataset.act;
+    if (!S.catalog) return;
+    if (a === 'index') openIndex(); else if (a === 'search') openSearch(); else if (a === 'wish') openWish();
+    else if (a === 'share') openShare(); else if (a === 'backup') openBackup(); else if (a === 'settings') openSettings(); else if (a === 'refresh') refreshCatalog(true);
+    else if (a === 'quick') { S.quick = !S.quick; tb.classList.toggle('on', S.quick); $('#book').classList.toggle('quick', S.quick); toast(S.quick ? 'Ajout rapide activé : clique sur une carte pour l’ajouter.' : 'Ajout rapide désactivé.'); }
+  }
+});
+$('#photoIn').onchange = async e => {
+  const f = e.target.files[0], id = e.target.dataset.id; e.target.value = ''; if (!f || !id) return;
+  try {
+    const bmp = await createImageBitmap(f), W = 360, H = Math.round(W * 88 / 63);
+    const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+    const r = Math.max(W / bmp.width, H / bmp.height), w = bmp.width * r, h = bmp.height * r;
+    cv.getContext('2d').drawImage(bmp, (W - w) / 2, (H - h) / 2, w, h);
+    S.photos[id] = cv.toDataURL('image/jpeg', .8);
+    if (!LS.set('pk.photos', S.photos)) { delete S.photos[id]; return toast('Plus de place pour stocker la photo dans ce navigateur.'); }
+    refreshPocket(id); renderDetail(S.byId.get(id), detailOf(id)); toast('Photo ajoutée.');
+  } catch (err) { toast('Impossible de lire cette image.'); }
+};
+$('#prev').onclick = () => go(S.idx - 1);
+$('#next').onclick = () => go(S.idx + 1);
+$('#scrub').oninput = e => { if (!S.busy) { S.idx = +e.target.value; render(); } };
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') return closeAll();
+  if ($('#modal').classList.contains('show') || $('#drawer').classList.contains('show') || /INPUT|TEXTAREA/.test(document.activeElement?.tagName)) return;
+  if (e.key === 'ArrowRight' || e.key === 'PageDown') go(S.idx + 1);
+  if (e.key === 'ArrowLeft' || e.key === 'PageUp') go(S.idx - 1);
+});
+let tx = null, ty = null;
+$('#stage').addEventListener('touchstart', e => { tx = e.touches[0].clientX; ty = e.touches[0].clientY; }, {passive: true});
+$('#stage').addEventListener('touchend', e => { if (tx == null) return; const dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty; if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) go(S.idx + (dx < 0 ? 1 : -1)); tx = null; }, {passive: true});
+let rzT; addEventListener('resize', () => { clearTimeout(rzT); rzT = setTimeout(() => { if (S.catalog) { layout(); render(); } }, 120); });
+
+/* ---------- démarrage ---------- */
+(function start() {
+  if (S.catalog?.cards?.length) {
+    indexCatalog(); showApp();
+    if (Date.now() - S.catalog.t > CATALOG_TTL) refreshCatalog(false); else prefetchDetails(false);
+  } else refreshCatalog(false);
+})();
+</script>
+</body>
+</html>
