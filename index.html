@@ -401,7 +401,7 @@ const S = {
   byId: new Map(), pages: [], pageOf: new Map(),
   single: false, busy: false, quick: false, openId: null, prefetching: false
 };
-const saveColl = () => { if (RO) return; LS.set('pk.coll', S.coll); LS.set('pk.lastEdit', Date.now()); };
+const saveColl = () => { if (RO) return; LS.set('pk.coll', S.coll); LS.set('pk.lastEdit', Date.now()); if (typeof schedulePublish === 'function') schedulePublish(); };
 let detailsTimer = null;
 const saveDetails = () => { clearTimeout(detailsTimer); detailsTimer = setTimeout(() => { if (!LS.set('pk.details', S.details)) { /* quota: on garde en mémoire */ } }, 800); };
 
@@ -1100,6 +1100,38 @@ function applyReadOnly() {
 }
 applyReadOnly();
 const ONLINE_URL = 'https://disyth.github.io/binder-pikachu/';
+const FIXED_URL = ONLINE_URL + 'partage';
+const GH_FILE = 'https://api.github.com/repos/Disyth/binder-pikachu/contents/partage.json';
+/* Données publiées sur le lien fixe /partage (fichier partage.json du dépôt GitHub) */
+function shareData(name, withPhotos) {
+  return {owner: name, date: new Date().toISOString(), collection: S.coll, custom: S.custom, photos: withPhotos ? S.photos : {},
+    settings: {pockets: S.settings.pockets, ghost: S.settings.ghost, perSet: S.settings.perSet, diff: S.settings.diff}};
+}
+const b64utf8 = s => { const b = new TextEncoder().encode(s); let bin = ''; for (let i = 0; i < b.length; i += 0x8000) bin += String.fromCharCode(...b.subarray(i, i + 0x8000)); return btoa(bin); };
+async function publishFixed(silent) {
+  const token = LS.get('pk.ghToken', ''), name = LS.get('pk.owner', '') || 'un ami';
+  if (!token) { if (!silent) toast('Ajoute d\u2019abord ta clé GitHub (étape 1).'); return false; }
+  const H = {Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json'};
+  try {
+    let sha;
+    const cur = await fetch(GH_FILE + '?ref=main', {headers: H, cache: 'no-store'});
+    if (cur.status === 401 || cur.status === 403) throw new Error('auth');
+    if (cur.ok) sha = (await cur.json()).sha;
+    const body = {message: 'Mise à jour de la collection partagée', branch: 'main',
+      content: b64utf8(JSON.stringify(shareData(name, LS.get('pk.pubPhotos', true)))), ...(sha ? {sha} : {})};
+    const r = await fetch(GH_FILE, {method: 'PUT', headers: {...H, 'Content-Type': 'application/json'}, body: JSON.stringify(body)});
+    if (r.status === 401 || r.status === 403 || r.status === 404) throw new Error('auth');
+    if (!r.ok) throw new Error(r.status);
+    LS.set('pk.lastPub', Date.now());
+    if (!silent) toast('Collection publiée sur ton lien.');
+    return true;
+  } catch (e) {
+    toast(e.message === 'auth' ? 'Clé GitHub refusée : vérifie-la dans Partager.' : 'Publication impossible pour le moment.');
+    return false;
+  }
+}
+let pubT;
+function schedulePublish() { if (RO || !LS.get('pk.autoPub', false) || !LS.get('pk.ghToken', '')) return; clearTimeout(pubT); pubT = setTimeout(() => publishFixed(true), 15000); }
 /* Lien de partage : la collection est encodée dans l'adresse (#v1=…), sans serveur.
    Format : set:numéro[.indexVariante][*quantité],… ; set2:… */
 function encodeShareLink(name) {
@@ -1130,15 +1162,34 @@ function openShare() {
   openDrawer('Partager en lecture seule', `
     <div class="field"><p>Tes amis pourront <b>feuilleter ta collection, voir les fiches et la liste des cartes qui te manquent</b>, sans pouvoir la modifier.</p></div>
     <div class="field"><label class="t">Ton prénom ou pseudo</label><p>Affiché en haut : « Collection de … ».</p><input class="srch" id="shName" value="${esc(owner)}" placeholder="Ex. Damien" maxlength="40"></div>
+    <div class="field"><label class="t">Ton lien fixe</label>
+      <p><a href="${FIXED_URL}" target="_blank" rel="noopener">${FIXED_URL}</a><br>Toujours le même lien : tes amis voient la dernière version que tu as publiée.</p>
+      ${online ? `
+      <details class="addvar" ${LS.get('pk.ghToken', '') ? '' : 'open'}><summary>Étape 1 · Ta clé GitHub ${LS.get('pk.ghToken', '') ? '(enregistrée)' : '(une seule fois)'}</summary>
+        <p class="muted" style="line-height:1.5">La clé permet à l\u2019app d\u2019envoyer ta collection sur ton dépôt. Crée-la sur <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com/settings/personal-access-tokens/new</a> : <b>Repository access → Only select repositories → binder-pikachu</b>, puis <b>Permissions → Contents → Read and write</b>. Elle reste uniquement dans ce navigateur.</p>
+        <div class="addrow"><input class="srch" id="shTok" type="password" placeholder="github_pat_…" autocomplete="off"><button class="btn" id="shTokSave">Enregistrer</button>${LS.get('pk.ghToken', '') ? '<button class="btn danger" id="shTokDel">Oublier</button>' : ''}</div></details>
+      <label class="switch"><span><b>Publier automatiquement</b><br><span class="muted">Dès que tu modifies ta collection (sous 15 s).</span></span><input type="checkbox" id="shAuto" ${LS.get('pk.autoPub', false) ? 'checked' : ''}></label>
+      ${nPh ? `<label class="switch"><span><b>Publier aussi mes photos</b></span><input type="checkbox" id="shPubPh" ${LS.get('pk.pubPhotos', true) ? 'checked' : ''}></label>` : ''}
+      <div class="links"><button class="btn pri" id="shPub">Publier maintenant</button><button class="btn" id="shCopyFixed">Copier le lien fixe</button></div>
+      <p class="muted">${LS.get('pk.lastPub', 0) ? 'Dernière publication : ' + new Date(LS.get('pk.lastPub', 0)).toLocaleString('fr-FR') + '. ' : ''}Après une publication, le lien affiche la nouvelle version en 1 à 2 minutes.</p>`
+      : `<p>Pour publier, ouvre ton binder depuis la version en ligne <a href="${ONLINE_URL}" target="_blank" rel="noopener">${ONLINE_URL}</a>.</p>`}</div>
+    <details class="addvar"><summary>Autre option : lien « photo » sans publication</summary>
     <div class="field"><label class="t">Lien à partager</label>
       <p>Un lien vers la version en ligne. Ta collection est dans le lien lui-même : c\u2019est une photo de ta collection à l\u2019instant où tu le copies. Après de nouveaux ajouts, recopie le lien et renvoie-le.${nPh ? ' Tes photos perso ne passent pas dans le lien.' : ''}</p>
       ${online ? '' : `<p>Ton binder est ouvert depuis un fichier : pour que le lien affiche ta collection à jour, utilise plutôt la version en ligne <a href="${ONLINE_URL}" target="_blank" rel="noopener">${ONLINE_URL}</a> (importe ta sauvegarde la 1re fois).</p>`}
-      <div class="links"><button class="btn pri" id="shLink">Copier le lien de partage</button></div><div id="shOut"></div></div>
+      <div class="links"><button class="btn" id="shLink">Copier le lien de partage</button></div><div id="shOut"></div></div></details>
     <details class="addvar"><summary>Autre option : fichier à télécharger</summary>
       ${nPh ? `<label class="switch"><span><b>Inclure mes photos</b><br><span class="muted">${nPh} ${plural(nPh, 'photo')}</span></span><input type="checkbox" id="shPh" checked></label>` : ''}
       <div class="links"><button class="btn" id="shGo">Télécharger la version à partager</button></div></details>
     <div class="field"><p class="muted">Ce que tes amis font de leur côté ne peut jamais toucher ta collection.</p></div>`, body => {
     const getName = () => { const n = $('#shName', body).value.trim() || 'un ami'; LS.set('pk.owner', n); return n; };
+    $('#shName', body).onchange = getName;
+    const tk = $('#shTokSave', body); if (tk) tk.onclick = () => { const v = $('#shTok', body).value.trim(); if (!v) return; LS.set('pk.ghToken', v); $('#shTok', body).value = ''; toast('Clé enregistrée dans ce navigateur.'); openShare(); };
+    const td = $('#shTokDel', body); if (td) td.onclick = () => { LS.set('pk.ghToken', ''); toast('Clé oubliée.'); openShare(); };
+    const au = $('#shAuto', body); if (au) au.onchange = e => { LS.set('pk.autoPub', e.target.checked); if (e.target.checked) schedulePublish(); };
+    const pp = $('#shPubPh', body); if (pp) pp.onchange = e => LS.set('pk.pubPhotos', e.target.checked);
+    const pb = $('#shPub', body); if (pb) pb.onclick = async () => { getName(); pb.textContent = 'Publication…'; const ok = await publishFixed(false); pb.textContent = 'Publier maintenant'; if (ok) openShare(); };
+    const cf = $('#shCopyFixed', body); if (cf) cf.onclick = async () => { try { await navigator.clipboard.writeText(FIXED_URL); toast('Lien fixe copié.'); } catch (e) { toast(FIXED_URL); } };
     $('#shLink', body).onclick = async () => {
       const url = encodeShareLink(getName());
       try { await navigator.clipboard.writeText(url); toast('Lien copié : colle-le à tes amis.'); }

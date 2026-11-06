@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Binder Pikachu</title>
+<style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#1d1a15;color:#a19d92;font-family:system-ui,sans-serif;text-align:center}h1{color:#F7D02C;font-size:22px}</style>
+</head>
+<body>
+<div id="msg"><h1>Ouverture du binder…</h1><p>Chargement de la collection partagée</p></div>
+<script>
+/* Lien fixe /partage : charge la dernière collection publiée (partage.json),
+   puis affiche l'app principale en lecture seule. */
+(async () => {
+  const msg = document.getElementById('msg');
+  try {
+    let data = null;
+    // 1) API GitHub : toujours la dernière version publiée
+    try {
+      const r = await fetch('https://api.github.com/repos/Disyth/binder-pikachu/contents/partage.json?ref=main',
+        {headers: {Accept: 'application/vnd.github.raw+json'}, cache: 'no-store'});
+      if (r.ok) data = await r.json();
+    } catch (e) {}
+    // 2) Repli : copie servie par GitHub Pages (mise à jour en 1 à 2 minutes)
+    if (!data) { const r = await fetch('../partage.json', {cache: 'no-store'}); if (r.ok) data = await r.json(); }
+    if (!data || typeof data !== 'object') {
+      msg.innerHTML = '<h1>Pas encore de collection publiée</h1><p>Le propriétaire de ce binder n’a pas encore publié sa collection.</p>';
+      return;
+    }
+    const app = await (await fetch('../index.html', {cache: 'no-store'})).text();
+    const inj = '<script id="pk-shared">window.PK_SHARED=' + JSON.stringify(data).replace(/</g, '\\u003c') + ';<\/script>\n';
+    const i = app.indexOf("<script>\n'use strict';");
+    if (i < 0) throw new Error('app');
+    document.open(); document.write(app.slice(0, i) + inj + app.slice(i)); document.close();
+  } catch (e) {
+    msg.innerHTML = '<h1>Impossible d’ouvrir le binder</h1><p>Vérifie ta connexion puis recharge la page.</p>';
+  }
+})();
+</script>
+</body>
+</html>
